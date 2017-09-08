@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dictionary">
+
+	<insert id="makeTFIDF" parameterType="java.util.Map">
+		insert into TFIDF(NO, NEWS_CODE, TERM, F, TF, DF, IDF, TFIDF) 
+		values(TFIDF_SEQ.nextVal, #{newsCode}, #{term}, #{f}, #{tf}, #{df}, #{idf}, #{tfidf})
+	</insert>
+	
+	<select id="selectTFIDF" parameterType="java.util.Map" resultType="tfidfVO">
+		<![CDATA[
+			select term, tfidf
+			from TFIDF
+			where news_code = #{newsCode} and #{from} < IDF and IDF < #{to}
+		]]>
+	</select>
+	
+	<select id="selectOpiDic" parameterType="java.util.Map" resultType="opiDicVO">
+			select term, weight
+			from ${table}, (select no from company where name=#{comName}) company
+			where ${table}.com_no = company.no and news_code = #{newsCode}
+	</select>
+	
+	<select id="selectProDic" parameterType="java.util.Map" resultType="proDicVO">
+			select term, inc, dec, equ
+			from PRO_DIC, (select no from company where name=#{comName}) company
+			where PRO_DIC.com_no = company.no and news_code = #{newsCode}
+	</select>
+	
+	<select id="selectProDic2" parameterType="java.util.Map" resultType="proDicVO">
+			select term, inc, dec, equ
+			from PRO_DIC2, (select no from company where name=#{comName}) company
+			where PRO_DIC2.com_no = company.no and news_code = #{newsCode}
+	</select>
+	
+	<insert id="makeOpiDic" parameterType="java.util.Map">
+		insert into ${table}(NO, COM_NO, NEWS_CODE, TERM, WEIGHT) 
+		values(${sequence}, #{comNo}, #{newsCode}, #{term}, #{weight})
+	</insert>
+	
+	<insert id="makeProDic" parameterType="java.util.Map">
+		insert into ${table}(NO, COM_NO, NEWS_CODE, TERM, INC, DEC, EQU) 
+		values(${sequence}, #{comNo}, #{newsCode}, #{term}, #{inc}, #{dec}, #{equ})
+	</insert>
+</mapper>
