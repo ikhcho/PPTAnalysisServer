@@ -137,6 +137,19 @@ public class ProAnalysis implements Analysis{
 				|| (incScore < decScore && flucState.equals("m"))) {
 			success++;
 		}
+		/*if((incScore / total >= 0.497206 && flucState.equals("m")) || (incScore / total < 0.497206 && flucState.equals("m")))
+			success++;*/
+		/*if(incScore / total < 0.497206){
+			if(decScore / total <0.473089){
+				if(flucState.equals("-")){
+					success++;
+				}
+				else if(flucState.equals("m"))
+					success++;
+			}
+		}else if(flucState.equals("p"))
+			success++;*/
+		
 		predictCnt++;
 		
 		String result = String.valueOf(incScore / total) 
