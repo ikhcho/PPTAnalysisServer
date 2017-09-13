@@ -18,6 +18,11 @@
 		]]>
 	</select>
 	
+	<select id="selectAllTFIDF" parameterType="String" resultType="tfidfVO">
+			select *
+			from TFIDF
+	</select>
+	
 	<select id="selectOpiDic" parameterType="java.util.Map" resultType="opiDicVO">
 			select term, weight
 			from ${table}, (select no from company where name=#{comName}) company

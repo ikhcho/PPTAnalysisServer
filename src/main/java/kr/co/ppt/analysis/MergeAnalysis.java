@@ -3,6 +3,7 @@ package kr.co.ppt.analysis;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -16,6 +17,7 @@ import org.json.simple.JSONObject;
 import kr.co.ppt.dictionary.OpiDicVO;
 import kr.co.ppt.dictionary.ProDicVO;
 import kr.co.ppt.dictionary.TfidfVO;
+import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
 import kr.co.ppt.stock.StockVO;
 import kr.co.ppt.util.Tool;
@@ -29,12 +31,12 @@ public class MergeAnalysis implements Analysis{
 	JSONArray prodicArr;
 	private List<StockVO> stockList;
 	private List<TfidfVO> tfidfList;
+	Map<String,Double> tfidfMap;
 	private double incScore=0;
 	private double decScore=0;
 	private double equScore=0;
 	private int success = 0;
 	private int predictCnt=0;
-	private List<String> csv = new ArrayList<String>();
 	private int wordCnt=0;
 	
 	public MergeAnalysis(List<OpiDicVO> posList, List<OpiDicVO> negList, List<ProDicVO> proDicList,
@@ -48,124 +50,140 @@ public class MergeAnalysis implements Analysis{
 	}
 
 	public MergeAnalysis(JSONObject posJson, JSONObject negJson, JSONArray prodicArr, 
-			List<StockVO> stockList, List<TfidfVO> tfidfList) {
+			List<StockVO> stockList, Map<String,Double> tfidfMap) {
 		this.posJson = posJson;
 		this.negJson = negJson;
 		this.prodicArr = prodicArr;
 		this.stockList = stockList;
-		this.tfidfList = tfidfList;
+		this.tfidfMap = tfidfMap;
 	}
 	
 	@Override
-	public void trainAnalyze(NewsMorpVO morpVO) {
+	public String trainAnalyze(NewsMorpVO morpVO) {
 		incScore=0;
 		decScore=0;
 		equScore=0;
 		String predicDate = Tool.getDate(morpVO.getNewsDate(), 1);
 		if(Tool.isOpen(predicDate)){
 			List<NewsMorpVO> morpList = Tool.mergeVO(morpVO);
+			Set<String> NewsMorpSet = new HashSet<String>();
 			for(NewsMorpVO morp: morpList){
-				Set<String> opinionKey = new HashSet<String>();
-				Map<String,Integer> map = morp.getBegin();
-				map.putAll(morp.getAppend());
-				map.putAll(new NewsMorpVO("D:\\PPT\\mining\\"+morp.getCategory()+Tool.getDate(morp.getNewsDate(), 1)+".json").getPrev());
-				Iterator<String> iter = map.keySet().iterator();
-
-				while(iter.hasNext()){
-					String key = iter.next();
-					for(OpiDicVO pos :posList){
-						if(pos.getTerm().equals(key)){
-							opinionKey.add(key);
-							break;
-						}
-					}
-					for(OpiDicVO neg :negList){
-						if(neg.getTerm().equals(key)){
-							opinionKey.add(key);
-							break;
-						}
+				NewsMorpSet.addAll(morp.getBegin().keySet());
+				NewsMorpSet.addAll(morp.getAppend().keySet());
+				NewsMorpSet.addAll(new NewsMorpVO("D:\\PPT\\mining\\"+morp.getCategory()+Tool.getDate(morp.getNewsDate(), 1)+".json").getPrev().keySet());
+			}
+			Set<String> opinionKey = new HashSet<String>();
+			Iterator<String> iter = NewsMorpSet.iterator();
+			while(iter.hasNext()){
+				String key = iter.next();
+				for(OpiDicVO pos :posList){
+					if(pos.getTerm().equals(key)){
+						opinionKey.add(key);
+						break;
 					}
 				}
-				
-				Iterator<String> opiKeyIter = opinionKey.iterator();
-				while(opiKeyIter.hasNext()){
-					String key = opiKeyIter.next();
-					for(ProDicVO prodic : proDicList){
-						if(prodic.getTerm().equals(key)){
-							for(TfidfVO tfidfVO : tfidfList){
-								if(tfidfVO.getTerm().equals(key)){
-									incScore += (prodic.getInc() * tfidfVO.getTfidf() / 10);
-									decScore += (prodic.getDec() * tfidfVO.getTfidf() / 10);
-									equScore += (prodic.getEqu() * tfidfVO.getTfidf() / 10);
-									wordCnt++;
-									break;
-								}
-							}
-							break;
-						}
+				for(OpiDicVO neg :negList){
+					if(neg.getTerm().equals(key)){
+						opinionKey.add(key);
+						break;
 					}
 				}
 			}
-			predict(predicDate);
+			Map<String, Double> equalTerm = new HashMap<String, Double>();
+			for (TfidfVO tfidfVO : tfidfList) {
+				if (opinionKey.contains(tfidfVO.getTerm()))
+					equalTerm.put(tfidfVO.getTerm(), tfidfVO.getTfidf());
+			}
+			for (ProDicVO prodic : proDicList) {
+				String key = (String) prodic.getTerm();
+				if (equalTerm.containsKey(key)) {
+					incScore += (prodic.getInc() * equalTerm.get(key) / 10);
+					decScore += (prodic.getDec() * equalTerm.get(key) / 10);
+					equScore += (prodic.getEqu() * equalTerm.get(key) / 10);
+					wordCnt++;
+				}
+			}
+			return predict(predicDate);
 		}else{
-			return;
+			return "";
 		}
 		
 	}
 
 	@Override
-	public void trainAnalyzeWithMongo(NewsMorpVO morpVO) {
+	public String trainAnalyzeWithMongo(NewsMorpVO morpVO) {
 		incScore=0;
 		decScore=0;
 		equScore=0;
 		String predicDate = Tool.getDate(morpVO.getNewsDate(), 1);
 		if(Tool.isOpen(predicDate)){
 			List<NewsMorpVO> morpList = Tool.mergeVO(morpVO);
+			Set<String> NewsMorpSet = new HashSet<String>();
 			for(NewsMorpVO morp: morpList){
-				Set<String> opinionKey = new HashSet<String>();
-				Map<String,Integer> map = morp.getBegin();
-				map.putAll(morp.getAppend());
-				map.putAll(new NewsMorpVO("D:\\PPT\\mining\\"+morp.getCategory()+Tool.getDate(morp.getNewsDate(), 1)+".json").getPrev());
-				Iterator<String> iter = map.keySet().iterator();
-
-				while(iter.hasNext()){
-					String key = iter.next();
-					if(posJson.containsKey(key))
-						opinionKey.add(key);
-					else if(negJson.containsKey(key))
-						opinionKey.add(key);
-				}
-				
-				Iterator<String> opiKeyIter = opinionKey.iterator();
-				while(opiKeyIter.hasNext()){
-					String key = opiKeyIter.next();
-					for(int i=0; i<prodicArr.size(); i++){
-						JSONObject prodic = (JSONObject)prodicArr.get(i);
-						if(prodic.get("word").equals(key)){
-							for(TfidfVO tfidfVO : tfidfList){
-								if(tfidfVO.getTerm().equals(key)){
-									incScore += (Double.parseDouble((String)prodic.get("inc")) * tfidfVO.getTfidf() / 10);
-									decScore += (Double.parseDouble((String)prodic.get("dec")) * tfidfVO.getTfidf() / 10);
-									equScore += (Double.parseDouble((String)prodic.get("equ")) * tfidfVO.getTfidf() / 10);
-									wordCnt++;
-									break;
-								}
-							}
-							break;
-						}
-					}
+				NewsMorpSet.addAll(morp.getBegin().keySet());
+				NewsMorpSet.addAll(morp.getAppend().keySet());
+				NewsMorpSet.addAll(new NewsMorpVO("D:\\PPT\\mining\\"+morp.getCategory()+Tool.getDate(morp.getNewsDate(), 1)+".json").getPrev().keySet());
+			}
+			Map<String, Double> equalTerm = new HashMap<String, Double>();
+			Iterator<String> iter = NewsMorpSet.iterator();
+			while(iter.hasNext()){
+				String key = iter.next();
+				if(posJson.containsKey(key) && tfidfMap.containsKey(key))
+					equalTerm.put(key,tfidfMap.get(key));
+				else if(negJson.containsKey(key) && tfidfMap.containsKey(key))
+					equalTerm.put(key,tfidfMap.get(key));
+			}
+			
+			for (int i = 0; i < prodicArr.size(); i++) {
+				JSONObject prodic = (JSONObject) prodicArr.get(i);
+				String key = (String) prodic.get("word");
+				if (equalTerm.containsKey(key)) {
+					incScore += (Double.parseDouble((String) prodic.get("inc")) * equalTerm.get(key) / 10);
+					decScore += (Double.parseDouble((String) prodic.get("dec")) * equalTerm.get(key) / 10);
+					equScore += (Double.parseDouble((String) prodic.get("equ")) * equalTerm.get(key) / 10);
+					wordCnt++;
 				}
 			}
-			predict(predicDate);
+			return predict(predicDate);
 		}else{
-			return;
+			return "";
 		}
-		
 	}
 
 	@Override
-	public void analyze() {
-		// TODO Auto-generated method stub
+	public String analyze(MorpVO morpVO) {
+		incScore=0;
+		decScore=0;
+		equScore=0;
+		wordCnt=0;
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+		String predicDate = Tool.getDate(sdf.format(new Date()), 1);
+		Set<String> opinionKey = new HashSet<String>();
+		Iterator<String> iter = morpVO.getMorp().keySet().iterator();
+		Map<String, Double> equalTerm = new HashMap<String, Double>();
+		while(iter.hasNext()){
+			String key = iter.next();
+			if(posJson.containsKey(key) && tfidfMap.containsKey(key))
+				equalTerm.put(key,tfidfMap.get(key));
+			else if(negJson.containsKey(key) && tfidfMap.containsKey(key))
+				equalTerm.put(key,tfidfMap.get(key));
+		}
+		
+		for (int i = 0; i < prodicArr.size(); i++) {
+			JSONObject prodic = (JSONObject) prodicArr.get(i);
+			String key = (String) prodic.get("word");
+			if (equalTerm.containsKey(key)) {
+				incScore += (Double.parseDouble((String) prodic.get("inc")) * equalTerm.get(key) / 10);
+				decScore += (Double.parseDouble((String) prodic.get("dec")) * equalTerm.get(key) / 10);
+				equScore += (Double.parseDouble((String) prodic.get("equ")) * equalTerm.get(key) / 10);
+				wordCnt++;
+			}
+		}
+		String result = predicDate + " 예측 : " 
+				+ String.valueOf(incScore / wordCnt) 
+				+ "," + String.valueOf(decScore / wordCnt)
+				+ "," + String.valueOf(equScore / wordCnt);
+		return result;
 	}
 	
 	@Override
@@ -188,8 +206,7 @@ public class MergeAnalysis implements Analysis{
 						+ "," + String.valueOf(decScore / wordCnt)
 						+ "," + String.valueOf(equScore / wordCnt)
 						+ ","+flucState;
-		csv.add(result);
-		return predicDate + "," + result;
+		return result;
 	}
 
 	@Override
@@ -202,21 +219,4 @@ public class MergeAnalysis implements Analysis{
 		return predictCnt;
 	}
 
-	@Override
-	public String makeCSV(){
-		String path = "D:\\PPT\\analysis\\meg1.csv";
-		FileOutputStream fos;
-		try {
-			fos = new FileOutputStream(path);
-			fos.write("meg1Inc,meg1Dec,meg1Equ,result\n".getBytes("utf-8"));
-			for(String text : csv){
-				fos.write((text+"\n").getBytes("utf-8"));
-			}
-			fos.close();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return path;
-	}
 }

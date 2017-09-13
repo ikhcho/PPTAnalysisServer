@@ -71,7 +71,7 @@ public class DictionaryService {
 	}
 	
 	public JSONObject selectOpiDicMongo(String comName,String opinion, String newsCode){
-		Bson query = Filters.and(Filters.eq("comName",comName), Filters.eq("opinion",opinion), Filters.eq("category",newsCode));
+		Bson query = Filters.and(Filters.eq("comName",comName), Filters.eq("opinion",opinion), Filters.eq("newsCode",newsCode));
 		String data = dDAO.selectDictionary("OPI_DIC",query).toJson();
 		JSONParser parser = new JSONParser();
 		JSONObject obj = null;
@@ -111,6 +111,17 @@ public class DictionaryService {
 		}
 		return arr;
 	}
+	
+	public void insertTFIDF(String newsCode){
+		dDAO.insertTFIDF(selectTFIDF(newsCode), newsCode);
+	}
+	
+	public Map<String,Double> selectTFIDFMongo(String newsCode, double from, double to){
+		Bson query = Filters.and(Filters.eq("newsCode",newsCode),Filters.gt("idf",from), Filters.lt("idf",to));
+		Map<String,Double> map =dDAO.selectTFIDF(query);
+		System.out.println("MongoDB - " + from + "< idf < " + to + "범위 TF-IDF사전 " + map.size() + "건 호출 성공");
+		return map;
+	}
 	//=======================Connect to Oracle================================//
 	public List<TfidfVO> selectTFIDF(String newsCode, double from, double to){
 		Map<Object,Object> dataMap = new HashMap<Object,Object>();
@@ -118,8 +129,13 @@ public class DictionaryService {
 		dataMap.put("from", from);
 		dataMap.put("to", to);
 		List<TfidfVO> list = dDAO.selectTFIDF(dataMap);
+		System.out.println("Oracle DB - " + from + "< idf < " + to + "범위 TF-IDF사전 " + list.size() + "건 호출 성공");
+		return list;
+	}
+	
+	public List<TfidfVO> selectTFIDF(String newsCode){
+		List<TfidfVO> list = dDAO.selectTFIDF(newsCode);
 		TfidfVO tfidfVO = new TfidfVO();
-		System.out.println(from + "< idf < " + to + "범위 TF-IDF사전" + list.size() + "건 호출 성공");
 		return list;
 	}
 	

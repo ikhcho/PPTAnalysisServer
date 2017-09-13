@@ -59,6 +59,19 @@ public class DictionaryController {
 		return find.toJson();
 	}
 	
+	@RequestMapping("/mongo/insertTFIDF.do")
+	@ResponseBody
+	public String insertTFIDF(String newsCode){
+		dService.insertTFIDF(newsCode);
+		return "";
+	}
+	
+	@RequestMapping("/mongo/selectTFIDF.do")
+	@ResponseBody
+	public String selectTFIDFMongo(String newsCode,double from, double to){
+		dService.selectTFIDFMongo(newsCode,from,to);
+		return "";
+	}
 	//=======================Connect to ORACLE================================//
 	@RequestMapping("/oracle/selectTFIDF.do")
 	@ResponseBody

@@ -1,17 +1,24 @@
 package kr.co.ppt.server.dao;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 
@@ -54,6 +61,43 @@ public class DictionaryDAO {
 		return collection.find(query).first();
 	}
 	
+	public void insertTFIDF(List<TfidfVO> list, String newsCode){
+		collection = db.getCollection("TFIDF");
+		for(TfidfVO tfidfVO : list){
+			try {
+				Document document = new Document();
+				document.append("newsCode", newsCode);
+				document.append("word",  tfidfVO.getTerm());
+				document.append("f", tfidfVO.getF());
+				document.append("tf", tfidfVO.getTf());
+				document.append("df", tfidfVO.getDf());
+				document.append("idf", tfidfVO.getIdf());
+				document.append("tfidf", tfidfVO.getTfidf());
+				collection.insertOne(document);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println(collection.find().first().toJson());
+	}
+	
+	public Map<String,Double> selectTFIDF(Bson query){
+		Map<String,Double> map = new HashMap<String,Double>();
+		collection = db.getCollection("TFIDF");
+		MongoCursor<Document> cursor = collection.find(query).iterator();
+		JSONParser parser = new JSONParser();
+		while(cursor.hasNext()){
+			try {
+				JSONObject obj = (JSONObject)parser.parse(cursor.next().toJson());
+				map.put((String)obj.get("word"), (Double)obj.get("tfidf"));
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return map;
+	}
+	
 	//=======================Connect to Oracle================================//
 	public void makeTFIDF(Map<Object,Object> map){
 		template.insert("dictionary.makeTFIDF", map);
@@ -61,6 +105,10 @@ public class DictionaryDAO {
 	
 	public List<TfidfVO> selectTFIDF(Map<Object,Object> map){
 		return template.selectList("dictionary.selectTFIDF", map);
+	}
+	
+	public List<TfidfVO> selectTFIDF(String newsCode){
+		return template.selectList("dictionary.selectAllTFIDF", newsCode);
 	}
 	
 	public List<OpiDicVO> selectOpiDic(Map<Object,Object> map){

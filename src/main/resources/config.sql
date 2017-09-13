@@ -496,4 +496,4 @@ and term in('재건축','아파트','서울시','단지','뉴스','주민','추�
 (select term, tfidf from tfidf where news_code = 'economic' and 0 < IDF and IDF < 5)   tfidf
 where PRO_DIC.com_no = company.no and PRO_DIC.term = tfidf.term
 
-select
+select * from tfidf 

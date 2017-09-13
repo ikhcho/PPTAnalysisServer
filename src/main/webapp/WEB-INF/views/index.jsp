@@ -42,17 +42,17 @@ $(function(){
 		});
 	});
 	
-	/* //주가예측
+	//뉴스로 주가예측
 	$('#analysisBtn').click(function(){
-		var param = "?comName=" + $('#anaComName').val() + "&category=" + $('#anaCategory').val() 
-					+ "&function=" + $('#anaFunction').val() + "&from=" + $('#anaFrom').val() + "&to=" + $('#anaTo').val();
+		var param = "?url=" + $('#anaUrl').val() + "&comName=" + $('#anaComName').val() + "&newsCode=" + $('#anaCategory').val() 
+					+ "&function=" + $('#anaFunction').val();
 		$.ajax({
 			url : '${pageContext.request.contextPath }/analysis/analyze.do' + param,
 			success : function(data){
-				$('#result').text(data);			
+				$('#result').append(data);			
 			}
 		});
-	}); */
+	});
 });
 </script>
 </head>
@@ -89,8 +89,6 @@ $(function(){
 				형태소 분석<br/>
 				<textarea name="text" rows=20 cols=80 id="morpText"></textarea>
 				<button id="morpBtn">입력</button>
-			</td>
-			<td>
 				뉴스 분석
 				<input name="url" type="text" id="morpUrl">
 				<button id="morpUrlBtn">입력</button>
@@ -98,6 +96,26 @@ $(function(){
 			<td>
 				<form action="${pageContext.request.contextPath }/analysis/trainAnalyze.do">
 					예측<br/>
+					<input type="text" name="comName" placeholder="회사명">
+					<input type="text" name="newsCode" value="economic" readonly="readonly">
+					<select name="function">
+						<option value="opi1">감정분석1
+						<option value="opi2">감정분석2
+						<option value="pro1">확률분석1
+						<option value="pro2">확률분석2
+						<option value="fit1">필터분석1
+						<option value="fit2">필터분석2
+						<option value="meg1">통합분석1
+						<option value="meg2">통합분석2
+					</select>
+					<br/>
+					<input type="date" name="from">
+					<input type="date" name="to">
+					<input type="submit" value="서브밋">
+				</form>
+			</td>
+			<td>
+					뉴스 실시간 예측<br/>
 					<input type="text" name="comName" placeholder="회사명" id="anaComName">
 					<input type="text" name="newsCode" value="economic" readonly="readonly" id="anaCategory">
 					<select name="function" id="anaFunction">
@@ -111,9 +129,7 @@ $(function(){
 						<option value="meg2">통합분석2
 					</select>
 					<br/>
-					<input type="date" name="from" id="anaFrom">
-					<input type="date" name="to" id="anaTo">
-					<input type="submit" value="서브밋">
+					<input type="text" name="url" id="anaUrl">
 					<button id="analysisBtn">입력</button>
 				</form>
 			</td>
