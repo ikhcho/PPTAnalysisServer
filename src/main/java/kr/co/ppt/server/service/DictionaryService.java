@@ -39,6 +39,7 @@ public class DictionaryService {
 	DictionaryDAO dDAO;
 	@Autowired
 	StockService sService;
+	
 	//=======================Connect to MongoDB================================//
 	public void insertAllDictionary(String collectionName){
 		List<CompanyVO> list = sService.selectComList();

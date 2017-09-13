@@ -156,7 +156,6 @@ public class ProAnalysis implements Analysis{
 						+ "," + String.valueOf(decScore / total)
 						+ "," + String.valueOf(equScore / total)
 						+ ","+flucState;
-		System.out.println(result);
 		return result;
 	}
 

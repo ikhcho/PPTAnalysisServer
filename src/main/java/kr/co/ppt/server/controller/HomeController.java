@@ -16,8 +16,8 @@ public class HomeController {
 	@RequestMapping("/home.do")
 	public String home(Model model){
 		model.addAttribute("comList", kospiVO.getComNames());
-		DecisionTree dTree = new DecisionTree();
-		dTree.dTree();
+		//DecisionTree dTree = new DecisionTree();
+		//dTree.dTree();
 		return "index";
 	}
 	
