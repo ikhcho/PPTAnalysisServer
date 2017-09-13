@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="stock">
+	<insert id="insertComList" parameterType="java.util.Map">
+		insert into company(NO, NAME, CODE, stock_type) 
+		values(COMPANY_SEQ.nextVal, #{name}, #{code}, #{stockType})
+	</insert>
+
+	<select id="selectComList" resultType="companyVO">
+		select no, name, code, stock_type as stockType
+		from company
+		order by no
+	</select>
+
+	<insert id="insertStock" parameterType="stockVO">
+		insert into stock(NO, COM_NO, OPEN_DATE, OPEN_PRICE, CLOSE_PRICE, HIGH_PRICE, LOW_PRICE, VOLUME, FLUC_STATE, RAISE, RATE) 
+		values(STOCK_SEQ.nextVal, #{comNo}, #{openDate}, #{open}, #{close}, #{high}, #{low}, #{volume}, #{flucState}, #{raise}, #{rate})
+	</insert>
+	
+	<select id="selectStockList" parameterType="String" resultType="stockVO">
+		select stock.no, com_no as comNo, open_date as openDate, open_price as open, close_price as close, high_price as high, low_price as low, volume, fluc_state as flucState, raise, rate
+		from stock, (select no from company where name=#{comName}) company
+		where stock.com_no = company.no
+	</select>
+	
+	
+</mapper>
