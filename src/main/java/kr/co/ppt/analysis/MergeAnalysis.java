@@ -1,8 +1,6 @@
 package kr.co.ppt.analysis;
 
-import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,42 +17,42 @@ import kr.co.ppt.dictionary.ProDicVO;
 import kr.co.ppt.dictionary.TfidfVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
-import kr.co.ppt.stock.StockVO;
 import kr.co.ppt.util.Tool;
 
 public class MergeAnalysis implements Analysis{
+	//OracleDB
 	private List<OpiDicVO> posList;
 	private List<OpiDicVO> negList;
 	private List<ProDicVO> proDicList;
+	private List<TfidfVO> tfidfList;
+	// MongoDB
 	private JSONObject posJson;
 	private JSONObject negJson;
-	JSONArray prodicArr;
-	private List<StockVO> stockList;
-	private List<TfidfVO> tfidfList;
-	Map<String,Double> tfidfMap;
+	private JSONArray prodicArr;
+	private JSONArray stockArr;
+	private Map<String,Double> tfidfMap;
 	private double incScore=0;
 	private double decScore=0;
 	private double equScore=0;
 	private int success = 0;
 	private int predictCnt=0;
-	private int wordCnt=0;
 	
 	public MergeAnalysis(List<OpiDicVO> posList, List<OpiDicVO> negList, List<ProDicVO> proDicList,
-			List<StockVO> stockList, List<TfidfVO> tfidfList) {
+			JSONArray stockArr, List<TfidfVO> tfidfList) {
 		super();
 		this.posList = posList;
 		this.negList = negList;
 		this.proDicList = proDicList;
-		this.stockList = stockList;
+		this.stockArr = stockArr;
 		this.tfidfList = tfidfList;
 	}
 
 	public MergeAnalysis(JSONObject posJson, JSONObject negJson, JSONArray prodicArr, 
-			List<StockVO> stockList, Map<String,Double> tfidfMap) {
+			JSONArray stockArr, Map<String,Double> tfidfMap) {
 		this.posJson = posJson;
 		this.negJson = negJson;
 		this.prodicArr = prodicArr;
-		this.stockList = stockList;
+		this.stockArr = stockArr;
 		this.tfidfMap = tfidfMap;
 	}
 	
@@ -100,7 +98,6 @@ public class MergeAnalysis implements Analysis{
 					incScore += (prodic.getInc() * equalTerm.get(key) / 10);
 					decScore += (prodic.getDec() * equalTerm.get(key) / 10);
 					equScore += (prodic.getEqu() * equalTerm.get(key) / 10);
-					wordCnt++;
 				}
 			}
 			return predict(predicDate);
@@ -141,7 +138,6 @@ public class MergeAnalysis implements Analysis{
 					incScore += (Double.parseDouble((String) prodic.get("inc")) * equalTerm.get(key) / 10);
 					decScore += (Double.parseDouble((String) prodic.get("dec")) * equalTerm.get(key) / 10);
 					equScore += (Double.parseDouble((String) prodic.get("equ")) * equalTerm.get(key) / 10);
-					wordCnt++;
 				}
 			}
 			return predict(predicDate);
@@ -155,7 +151,6 @@ public class MergeAnalysis implements Analysis{
 		incScore=0;
 		decScore=0;
 		equScore=0;
-		wordCnt=0;
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 		String predicDate = Tool.getDate(sdf.format(new Date()), 1);
 		Set<String> opinionKey = new HashSet<String>();
@@ -176,35 +171,36 @@ public class MergeAnalysis implements Analysis{
 				incScore += (Double.parseDouble((String) prodic.get("inc")) * equalTerm.get(key) / 10);
 				decScore += (Double.parseDouble((String) prodic.get("dec")) * equalTerm.get(key) / 10);
 				equScore += (Double.parseDouble((String) prodic.get("equ")) * equalTerm.get(key) / 10);
-				wordCnt++;
 			}
 		}
+		double total = incScore + decScore + equScore;
 		String result = predicDate + " 예측 : " 
-				+ String.valueOf(incScore / wordCnt) 
-				+ "," + String.valueOf(decScore / wordCnt)
-				+ "," + String.valueOf(equScore / wordCnt);
+				+ String.valueOf(incScore / total) 
+				+ "," + String.valueOf(decScore / total)
+				+ "," + String.valueOf(equScore / total);
 		return result;
 	}
 	
 	@Override
 	public String predict(String predicDate){
 		String flucState="";
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-		for(StockVO stockVO: stockList){
-			if(sdf.format(stockVO.getOpenDate()).equals(predicDate)){
-				flucState = stockVO.getFlucState();
+		for (int i = 0; i < stockArr.size(); i++) {
+			JSONObject stock = (JSONObject) stockArr.get(i);
+			if(stock.get("date").equals(predicDate)){
+				flucState = ((String)stock.get("raise")).substring(0,1);
 				break;
 			}
 		}
-		if ((incScore / wordCnt > decScore / wordCnt && flucState.equals("p"))
-				|| (incScore / wordCnt < decScore / wordCnt && flucState.equals("m"))) {
+		if ((incScore > decScore && flucState.equals("p"))
+				|| (incScore < decScore && flucState.equals("m"))) {
 			success++;
 		}
 		predictCnt++;
 		
-		String result = String.valueOf(incScore / wordCnt) 
-						+ "," + String.valueOf(decScore / wordCnt)
-						+ "," + String.valueOf(equScore / wordCnt)
+		double total = incScore + decScore + equScore;
+		String result = String.valueOf(incScore / total) 
+						+ "," + String.valueOf(decScore / total)
+						+ "," + String.valueOf(equScore / total)
 						+ ","+flucState;
 		return result;
 	}

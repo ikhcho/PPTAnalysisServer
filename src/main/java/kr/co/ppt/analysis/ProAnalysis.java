@@ -1,45 +1,38 @@
 package kr.co.ppt.analysis;
 
-import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-
-import kr.co.ppt.dictionary.OpiDicVO;
 import kr.co.ppt.dictionary.ProDicVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
-import kr.co.ppt.stock.StockVO;
 import kr.co.ppt.util.Tool;
 
 public class ProAnalysis implements Analysis{
+	//OracleDB
 	private List<ProDicVO> proDicList;
-	JSONArray prodicArr;
-	private List<StockVO> stockList;
+	// MongoDB
+	private JSONArray prodicArr;
+	private JSONArray stockArr;
 	private double incScore=0;
 	private double decScore=0;
 	private double equScore=0;
 	private int success = 0;
 	private int predictCnt=0;
-	private int wordCnt=0;
 	
-	public ProAnalysis(List<ProDicVO> proDicList, List<StockVO> stockList) {
+	public ProAnalysis(List<ProDicVO> proDicList, JSONArray stockArr) {
 		this.proDicList = proDicList;
-		this.stockList = stockList;
+		this.stockArr = stockArr;
 	}
 	
-	public ProAnalysis(JSONArray prodicArr, List<StockVO> stockList) {
+	public ProAnalysis(JSONArray prodicArr, JSONArray stockArr) {
 		this.prodicArr = prodicArr;
-		this.stockList = stockList;
+		this.stockArr = stockArr;
 	}
 
 	@Override
@@ -47,7 +40,6 @@ public class ProAnalysis implements Analysis{
 		incScore=0;
 		decScore=0;
 		equScore=0;
-		wordCnt=0;
 		String predicDate = Tool.getDate(morpVO.getNewsDate(), 1);
 		if(Tool.isOpen(predicDate)){
 			List<NewsMorpVO> morpList = Tool.mergeVO(morpVO);
@@ -66,7 +58,6 @@ public class ProAnalysis implements Analysis{
 						incScore += prodic.getInc();
 						decScore += prodic.getDec();
 						equScore += prodic.getEqu();
-						wordCnt++;
 						break;
 					}
 				}
@@ -82,7 +73,6 @@ public class ProAnalysis implements Analysis{
 		incScore=0;
 		decScore=0;
 		equScore=0;
-		wordCnt=0;
 		String predicDate = Tool.getDate(morpVO.getNewsDate(), 1);
 		if(Tool.isOpen(predicDate)){
 			List<NewsMorpVO> morpList = Tool.mergeVO(morpVO);
@@ -99,7 +89,6 @@ public class ProAnalysis implements Analysis{
 					incScore += Double.parseDouble((String) prodic.get("inc"));
 					decScore += Double.parseDouble((String) prodic.get("dec"));
 					equScore += Double.parseDouble((String) prodic.get("equ"));
-					wordCnt++;
 				}
 			}
 			return predict(predicDate);
@@ -113,7 +102,6 @@ public class ProAnalysis implements Analysis{
 		incScore=0;
 		decScore=0;
 		equScore=0;
-		wordCnt=0;
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 		String predicDate = Tool.getDate(sdf.format(new Date()), 1);
 
@@ -124,35 +112,36 @@ public class ProAnalysis implements Analysis{
 				incScore += Double.parseDouble((String) prodic.get("inc"));
 				decScore += Double.parseDouble((String) prodic.get("dec"));
 				equScore += Double.parseDouble((String) prodic.get("equ"));
-				wordCnt++;
 			}
 		}
+		double total = incScore + decScore + equScore;
 		String result = predicDate + " 예측 : " 
-				+ String.valueOf(incScore / wordCnt) 
-				+ "," + String.valueOf(decScore / wordCnt)
-				+ "," + String.valueOf(equScore / wordCnt);
+				+ String.valueOf(incScore / total) 
+				+ "," + String.valueOf(decScore / total)
+				+ "," + String.valueOf(equScore / total);
 		return result;
 	}
 	
 	@Override
 	public String predict(String predicDate){
 		String flucState="";
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-		for(StockVO stockVO: stockList){
-			if(sdf.format(stockVO.getOpenDate()).equals(predicDate)){
-				flucState = stockVO.getFlucState();
+		for (int i = 0; i < stockArr.size(); i++) {
+			JSONObject stock = (JSONObject) stockArr.get(i);
+			if(stock.get("date").equals(predicDate)){
+				flucState = ((String)stock.get("raise")).substring(0,1);
 				break;
 			}
 		}
-		if ((incScore / wordCnt > decScore / wordCnt && flucState.equals("p"))
-				|| (incScore / wordCnt < decScore / wordCnt && flucState.equals("m"))) {
+		double total = incScore + decScore + equScore;
+		if ((incScore > decScore  && flucState.equals("p"))
+				|| (incScore < decScore && flucState.equals("m"))) {
 			success++;
 		}
 		predictCnt++;
 		
-		String result = String.valueOf(incScore / wordCnt) 
-						+ "," + String.valueOf(decScore / wordCnt)
-						+ "," + String.valueOf(equScore / wordCnt)
+		String result = String.valueOf(incScore / total) 
+						+ "," + String.valueOf(decScore / total)
+						+ "," + String.valueOf(equScore / total)
 						+ ","+flucState;
 		return result;
 	}

@@ -34,14 +34,13 @@ public class DictionaryDAO {
 	@Autowired
 	SqlSessionTemplate template;
 	
+	@Autowired
+	JSONReader jsonReader;
 	//=======================Connect to MongoDB================================//
-	private MongoClient mongo = new MongoClient("222.106.22.63:30000");
-	private MongoDatabase db = mongo.getDatabase("ppt");
-	private JSONReader jsonReader = new JSONReader();
 	private MongoCollection<Document> collection=null;
 	
 	public void insertAllDictionary(String colName, List<CompanyVO> list, String[] path, int type){
-		collection = db.getCollection(colName);
+		collection = jsonReader.DB.getCollection(colName);
 		for(CompanyVO companyVO : list){
 			String comName = companyVO.getName();
 			try{
@@ -57,12 +56,12 @@ public class DictionaryDAO {
 	}
 	
 	public Document selectDictionary(String colName, Bson query){
-		collection = db.getCollection(colName); 
+		collection = jsonReader.DB.getCollection(colName); 
 		return collection.find(query).first();
 	}
 	
 	public void insertTFIDF(List<TfidfVO> list, String newsCode){
-		collection = db.getCollection("TFIDF");
+		collection = jsonReader.DB.getCollection("TFIDF");
 		for(TfidfVO tfidfVO : list){
 			try {
 				Document document = new Document();
@@ -83,7 +82,7 @@ public class DictionaryDAO {
 	
 	public Map<String,Double> selectTFIDF(Bson query){
 		Map<String,Double> map = new HashMap<String,Double>();
-		collection = db.getCollection("TFIDF");
+		collection = jsonReader.DB.getCollection("TFIDF");
 		MongoCursor<Document> cursor = collection.find(query).iterator();
 		JSONParser parser = new JSONParser();
 		while(cursor.hasNext()){

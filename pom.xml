@@ -88,6 +88,12 @@
 		    <version>1.8-5</version>
 		</dependency>
 		
+		<dependency>
+		    <groupId>org.nuiton.thirdparty</groupId>
+		    <artifactId>REngine</artifactId>
+		    <version>1.8-5</version>
+		</dependency>
+		
 		
 		<!-- Util -->
 		<dependency>

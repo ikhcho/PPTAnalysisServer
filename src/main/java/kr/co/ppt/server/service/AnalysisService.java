@@ -45,50 +45,50 @@ public class AnalysisService {
 		List<OpiDicVO> posList = null;
 		List<OpiDicVO> negList = null;
 		List<ProDicVO> proDicList = null;
-		List<StockVO> stockList = sService.selectStockList(comName);
+		JSONArray stockArr = sService.selectStock(comName);
 		List<TfidfVO> tfidfList = null;
 		switch(function){
 			case "opi1":
 				posList = dService.selectOpiDic("OPI_POS_DIC", comName, newsCode);
 				negList = dService.selectOpiDic("OPI_NEG_DIC", comName, newsCode);
-				analysis = new OpiAnalysis(posList,negList,stockList);
+				analysis = new OpiAnalysis(posList,negList,stockArr);
 				break;
 			case "opi2":
 				posList = dService.selectOpiDic("OPI_POS_DIC", comName, newsCode);
 				negList = dService.selectOpiDic("OPI_NEG_DIC", comName, newsCode);
-				analysis = new OpiAnalysis2(posList,negList,stockList);
+				analysis = new OpiAnalysis2(posList,negList,stockArr);
 				break;
 			case "pro1":
 				proDicList = dService.selectProDic(comName, newsCode);
-				analysis = new ProAnalysis(proDicList,stockList);
+				analysis = new ProAnalysis(proDicList,stockArr);
 				break;
 			case "pro2":
 				proDicList = dService.selectProDic2(comName, newsCode);
-				analysis = new ProAnalysis(proDicList,stockList);
+				analysis = new ProAnalysis(proDicList,stockArr);
 				break;
 			case "fit1":
 				proDicList = dService.selectProDic(comName, newsCode);
 				tfidfList = dService.selectTFIDF(newsCode, 3, 5);
-				analysis = new FilteredAnalysis(proDicList,stockList,tfidfList);
+				analysis = new FilteredAnalysis(proDicList,stockArr,tfidfList);
 				break;
 			case "fit2":
 				proDicList = dService.selectProDic2(comName, newsCode);
 				tfidfList = dService.selectTFIDF(newsCode, 3, 5);
-				analysis = new FilteredAnalysis(proDicList,stockList,tfidfList);
+				analysis = new FilteredAnalysis(proDicList,stockArr,tfidfList);
 				break;
 			case "meg1":
 				posList = dService.selectOpiDic("OPI_POS_DIC", comName, newsCode);
 				negList = dService.selectOpiDic("OPI_NEG_DIC", comName, newsCode);
 				proDicList = dService.selectProDic(comName, newsCode);
 				tfidfList = dService.selectTFIDF(newsCode, 3, 7);
-				analysis = new MergeAnalysis(posList,negList,proDicList,stockList,tfidfList);
+				analysis = new MergeAnalysis(posList,negList,proDicList,stockArr,tfidfList);
 				break;
 			case "meg2":
 				posList = dService.selectOpiDic("OPI_POS_DIC", comName, newsCode);
 				negList = dService.selectOpiDic("OPI_NEG_DIC", comName, newsCode);
 				proDicList = dService.selectProDic(comName, newsCode);
 				tfidfList = dService.selectTFIDF(newsCode, 3, 7);
-				analysis = new MergeAnalysis(posList,negList,proDicList,stockList,tfidfList);
+				analysis = new MergeAnalysis(posList,negList,proDicList,stockArr,tfidfList);
 				break;
 		}
 		
@@ -112,41 +112,41 @@ public class AnalysisService {
 		JSONObject negJson = null;
 		JSONArray prodicArr = null;
 		Map<String,Double> tfidfMap = null;
-		List<StockVO> stockList = sService.selectStockList(comName);
+		JSONArray stockArr = sService.selectStock(comName);
 		List<String> csv = new ArrayList<String>();
 		switch(function){
 			case "opi1":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
-				analysis = new OpiAnalysis(posJson,negJson,stockList );
+				analysis = new OpiAnalysis(posJson,negJson,stockArr);
 				csv.add("opi1Inc,opi1Dec,result");
 				break;
 			case "opi2":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
-				analysis = new OpiAnalysis2(posJson,negJson,stockList );
+				analysis = new OpiAnalysis2(posJson,negJson,stockArr );
 				csv.add("opi2Inc,opi2Dec,result");
 				break;
 			case "pro1":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new ProAnalysis(prodicArr,stockList);
+				analysis = new ProAnalysis(prodicArr,stockArr);
 				csv.add("pro1Inc,pro1Dec,pro1Equ,result");
 				break;
 			case "pro2":
 				prodicArr = dService.selectPro2DicMongo(comName, newsCode);
-				analysis = new ProAnalysis(prodicArr,stockList);
+				analysis = new ProAnalysis(prodicArr,stockArr);
 				csv.add("pro2Inc,pro2Dec,pro1Equ,result");
 				break;
 			case "fit1":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
 				tfidfMap = dService.selectTFIDFMongo(newsCode, 3, 5);
-				analysis = new FilteredAnalysis(prodicArr,stockList,tfidfMap);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
 				csv.add("fit1Inc,fit1Dec,fit1Equ,result");
 				break;
 			case "fit2":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
 				tfidfMap = dService.selectTFIDFMongo(newsCode, 3, 5);
-				analysis = new FilteredAnalysis(prodicArr,stockList,tfidfMap);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
 				csv.add("fit2Inc,fit2Dec,fit2Equ,result");
 				break;
 			case "meg1":
@@ -154,7 +154,7 @@ public class AnalysisService {
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
 				tfidfMap = dService.selectTFIDFMongo(newsCode, 3, 7);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockList,tfidfMap);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
 				csv.add("meg1Inc,meg1Dec,meg1Equ,result");
 				break;
 			case "meg2":
@@ -162,7 +162,7 @@ public class AnalysisService {
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
 				tfidfMap = dService.selectTFIDFMongo(newsCode, 3, 7);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockList,tfidfMap);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
 				csv.add("meg2Inc,meg2Dec,meg2Equ,result");
 				break;
 		}
@@ -189,49 +189,49 @@ public class AnalysisService {
 		JSONObject negJson = null;
 		JSONArray prodicArr = null;
 		Map<String,Double> tfidfMap = null;
-		List<StockVO> stockList = sService.selectStockList(comName);
+		JSONArray stockArr = sService.selectStock(comName);
 		switch(function){
 			case "opi1":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
-				analysis = new OpiAnalysis(posJson,negJson,stockList );
+				analysis = new OpiAnalysis(posJson,negJson,stockArr );
 				break;
 			case "opi2":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
-				analysis = new OpiAnalysis2(posJson,negJson,stockList );
+				analysis = new OpiAnalysis2(posJson,negJson,stockArr );
 				break;
 			case "pro1":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new ProAnalysis(prodicArr,stockList);
+				analysis = new ProAnalysis(prodicArr,stockArr);
 				break;
 			case "pro2":
 				prodicArr = dService.selectPro2DicMongo(comName, newsCode);
-				analysis = new ProAnalysis(prodicArr,stockList);
+				analysis = new ProAnalysis(prodicArr,stockArr);
 				break;
 			case "fit1":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
 				tfidfMap = dService.selectTFIDFMongo(newsCode, 3, 5);
-				analysis = new FilteredAnalysis(prodicArr,stockList,tfidfMap);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
 				break;
 			case "fit2":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
 				tfidfMap = dService.selectTFIDFMongo(newsCode, 3, 5);
-				analysis = new FilteredAnalysis(prodicArr,stockList,tfidfMap);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
 				break;
 			case "meg1":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
 				tfidfMap = dService.selectTFIDFMongo(newsCode, 3, 7);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockList,tfidfMap);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
 				break;
 			case "meg2":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
 				tfidfMap = dService.selectTFIDFMongo(newsCode, 3, 7);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockList,tfidfMap);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
 				break;
 		}
 		long end = System.currentTimeMillis();
@@ -246,7 +246,6 @@ public class AnalysisService {
 			System.out.println("시작");
 			fos = new FileOutputStream(path);
 			for(String text : csv){
-				System.out.println(text);
 				fos.write((text+"\n").getBytes("utf-8"));
 			}
 			fos.flush();

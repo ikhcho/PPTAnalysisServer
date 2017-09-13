@@ -14,6 +14,14 @@ public class StockController {
 	@Autowired
 	StockService sService;
 	
+	//사전 데이터 저장용
+	@RequestMapping("/mongo/insertStock.do")
+	@ResponseBody
+	public String insertStockMongo() {
+		sService.insertStockMongo();
+		return "성공";
+	}
+		
 	@RequestMapping("/insertCompany.do")
 	@ResponseBody
 	public String insertCompany(String comName, String comCode, String type){

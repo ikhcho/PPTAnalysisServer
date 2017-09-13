@@ -122,6 +122,7 @@ public class DictionaryService {
 		System.out.println("MongoDB - " + from + "< idf < " + to + "범위 TF-IDF사전 " + map.size() + "건 호출 성공");
 		return map;
 	}
+	
 	//=======================Connect to Oracle================================//
 	public List<TfidfVO> selectTFIDF(String newsCode, double from, double to){
 		Map<Object,Object> dataMap = new HashMap<Object,Object>();

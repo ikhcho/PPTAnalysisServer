@@ -49,7 +49,7 @@ $(function(){
 		$.ajax({
 			url : '${pageContext.request.contextPath }/analysis/analyze.do' + param,
 			success : function(data){
-				$('#result').append(data);			
+				$('#result').append(data+'<br/>');			
 			}
 		});
 	});
@@ -96,7 +96,11 @@ $(function(){
 			<td>
 				<form action="${pageContext.request.contextPath }/analysis/trainAnalyze.do">
 					예측<br/>
-					<input type="text" name="comName" placeholder="회사명">
+					<select name="comName">
+						<c:forEach items="${comList }" var="comName">
+							<option>${comName }
+						</c:forEach>
+					</select>
 					<input type="text" name="newsCode" value="economic" readonly="readonly">
 					<select name="function">
 						<option value="opi1">감정분석1
@@ -115,8 +119,12 @@ $(function(){
 				</form>
 			</td>
 			<td>
-					뉴스 실시간 예측<br/>
-					<input type="text" name="comName" placeholder="회사명" id="anaComName">
+				뉴스 실시간 예측<br/>
+				<select name="comName" id="anaComName">
+					<c:forEach items="${comList }" var="comName">
+						<option>${comName }
+					</c:forEach>
+				</select>
 					<input type="text" name="newsCode" value="economic" readonly="readonly" id="anaCategory">
 					<select name="function" id="anaFunction">
 						<option value="opi1">감정분석1
@@ -131,13 +139,11 @@ $(function(){
 					<br/>
 					<input type="text" name="url" id="anaUrl">
 					<button id="analysisBtn">입력</button>
-				</form>
 			</td>
 		</tr>
 		<tr>
 			<td colspan="3">
 				<div id="result">
-					내용
 				</div>
 			</td>
 		</tr>

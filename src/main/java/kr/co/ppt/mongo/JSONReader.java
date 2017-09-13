@@ -16,14 +16,24 @@ import org.bson.Document;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.springframework.stereotype.Component;
 
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoDatabase;
+
+@Component
 public class JSONReader {
+	public final static MongoClient MONGO = new MongoClient("222.106.22.63:30000");
+	public final static MongoDatabase DB = MONGO.getDatabase("ppt");
+	
 	//파일 타입
 	public final static int NEWS_JSON = 0;
 	public final static int WORDS_JSON = 1;
 	public final static int OPI_DIC_JSON = 2;
 	public final static int PRO_DIC_JSON = 3;
 	public final static int PRO2_DIC_JSON = 4;
+	public final static int STOCK = 5;
+	
 	
 	/**
 	 * 날짜별 파일들 이름 추출
@@ -137,18 +147,20 @@ public class JSONReader {
 			String comName = (String) jsonObject.get("comName");
 			String comCode = (String) jsonObject.get("comCode");
 			String newsCode = (String) jsonObject.get("category");
-			JSONArray dictionary = (JSONArray) jsonObject.get("dictionary");
 			switch (type) {
-			case OPI_DIC_JSON:
-				String opinion = (String) jsonObject.get("opinion");
-				document = new Document().append("comName", comName).append("comCode", comCode)
-						.append("opinion", opinion).append("newsCode", newsCode).append("dictionary", dictionary);
-				break;
-			case PRO_DIC_JSON:
-			case PRO2_DIC_JSON:
-				document = new Document().append("comName", comName).append("comCode", comCode)
-						.append("newsCode", newsCode).append("dictionary", dictionary);
-				break;
+				case OPI_DIC_JSON:
+					String opinion = (String) jsonObject.get("opinion");
+					document = new Document().append("comName", comName).append("comCode", comCode)
+							.append("opinion", opinion).append("newsCode", newsCode).append("dictionary", (JSONArray) jsonObject.get("dictionary"));
+					break;
+				case PRO_DIC_JSON:
+				case PRO2_DIC_JSON:
+					document = new Document().append("comName", comName).append("comCode", comCode)
+							.append("newsCode", newsCode).append("dictionary", (JSONArray) jsonObject.get("dictionary"));
+					break;
+				case STOCK:
+					document = new Document().append("comName", (String) jsonObject.get("name")).append("comCode", (String) jsonObject.get("code"))
+					.append("quote", (JSONArray)jsonObject.get("quote"));
 			}
 		} catch (Exception e){
 			System.out.println("Error : " + e.getMessage());
@@ -169,7 +181,7 @@ public class JSONReader {
 				BufferedReader br = new BufferedReader(isr);
 				){
 			while(br.ready()) {
-				if(type == WORDS_JSON || type == OPI_DIC_JSON || type == PRO_DIC_JSON || type == PRO2_DIC_JSON)
+				if(type == WORDS_JSON || type == OPI_DIC_JSON || type == PRO_DIC_JSON || type == PRO2_DIC_JSON || type == STOCK)
 					json = br.readLine();
 				else if(type == NEWS_JSON) {
 					StringBuffer sb = new StringBuffer();

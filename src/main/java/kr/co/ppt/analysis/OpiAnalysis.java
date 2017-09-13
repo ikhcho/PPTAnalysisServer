@@ -1,44 +1,41 @@
 package kr.co.ppt.analysis;
 
-import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-
 import kr.co.ppt.dictionary.OpiDicVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
-import kr.co.ppt.stock.StockVO;
 import kr.co.ppt.util.Tool;
 
 public class OpiAnalysis implements Analysis{
+	//OracleDB
 	private List<OpiDicVO> posList;
 	private List<OpiDicVO> negList;
+	//MongoDB
 	private JSONObject posJson;
 	private JSONObject negJson;
-	private List<StockVO> stockList;
+	private JSONArray stockArr;
 	private int success = 0;
 	private int posScore=0;
 	private int negScore=0;
 	private int predictCnt=0;
 	
-	public OpiAnalysis(List<OpiDicVO> posList, List<OpiDicVO> negList, List<StockVO> stockList) {
+	public OpiAnalysis(List<OpiDicVO> posList, List<OpiDicVO> negList, JSONArray stockArr) {
 		this.posList = posList;
 		this.negList = negList;
-		this.stockList = stockList;
+		this.stockArr = stockArr;
 	}
 	
-	public OpiAnalysis(JSONObject posJson, JSONObject negJson, List<StockVO> stockList) {
+	public OpiAnalysis(JSONObject posJson, JSONObject negJson, JSONArray stockArr) {
 		this.posJson = posJson;
 		this.negJson = negJson;
-		this.stockList = stockList;
+		this.stockArr = stockArr;
 		
 	}
 
@@ -132,10 +129,10 @@ public class OpiAnalysis implements Analysis{
 	@Override
 	public String predict(String predicDate){
 		String flucState="";
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-		for(StockVO stockVO: stockList){
-			if(sdf.format(stockVO.getOpenDate()).equals(predicDate)){
-				flucState = stockVO.getFlucState();
+		for (int i = 0; i < stockArr.size(); i++) {
+			JSONObject stock = (JSONObject) stockArr.get(i);
+			if(stock.get("date").equals(predicDate)){
+				flucState = ((String)stock.get("raise")).substring(0,1);
 				break;
 			}
 		}

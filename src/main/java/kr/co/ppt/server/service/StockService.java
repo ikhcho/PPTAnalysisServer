@@ -8,11 +8,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.bson.conversions.Bson;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.mongodb.client.model.Filters;
 
 import kr.co.ppt.server.dao.StockDAO;
 import kr.co.ppt.stock.CompanyVO;
@@ -24,6 +28,26 @@ public class StockService {
 	@Autowired
 	StockDAO sDAO;
 	
+	//=======================Connect to MongoDB================================//
+	public void insertStockMongo(){
+		sDAO.insertStock(selectComList());
+	}
+	
+	public JSONArray selectStock(String comName){
+		Bson query = Filters.eq("comName",comName);
+		String data = sDAO.selectStock(query).toJson();
+		JSONParser parser = new JSONParser();
+		JSONArray arr = null;
+		try {
+			arr = (JSONArray)((JSONObject) parser.parse(data)).get("quote");
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return arr;
+	}
+	
+	//=======================Connect to Oracle================================//
 	public void insertCompany(String comName, String comCode, String type){
 		Map<Object, Object> dataMap = new HashMap<Object, Object>();
 		dataMap.put("comName", comName);
