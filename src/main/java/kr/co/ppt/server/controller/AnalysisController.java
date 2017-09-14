@@ -56,12 +56,18 @@ public class AnalysisController {
 		String from = "20160101";
 		String to = "20170630";
 		String[] dateRange = Tool.dateRange(from, to);
-		String[] functions = {"pro1","pro2","fit1","fit2"};
+		String[] functions = {"pro1","pro2"};
 		List<String> list = new ArrayList<String>();
 		for(CompanyVO companyVO : sService.selectComList()){
-			for(String function : functions){
-				list.add(aService.trainAnalyzeWithMongo(companyVO.getName(),newsCode,function,dateRange));
+			try {
+				for(String function : functions){
+					list.add(aService.trainAnalyzeWithMongo(companyVO.getName(),newsCode,function,dateRange));
+				}
+			}catch(Exception e){
+				e.printStackTrace();
+				continue;
 			}
+			System.out.println(companyVO.getName() +" 종료");
 		}
 		model.addAttribute("list", list);
 		
@@ -81,15 +87,20 @@ public class AnalysisController {
 		FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(path);
-			fos.write(("comName,opi1,opi2,pro1,pro2,fit1,fit2,meg1,meg2\n").getBytes("utf-8"));
+			//fos.write(("comName,opi1,opi2,pro1,pro2,fit1,fit2,meg1,meg2\n").getBytes("utf-8"));
+			boolean go = false;
 			for(CompanyVO companyVO : sService.selectComList()){
 				try{
-					fos.write((companyVO.getName()+",").getBytes("utf-8"));
-					for(int i=0; i<7; i++){
-						fos.write((aService.trainAnalyzeWithMongo(companyVO.getName(),newsCode,functions[i],dateRange)+",").getBytes("utf-8"));
+					if(companyVO.getName().equals("한국카본"))
+						go=true;
+					if(go){
+						fos.write((companyVO.getName()+",").getBytes("utf-8"));
+						for(int i=0; i<7; i++){
+							fos.write((aService.trainAnalyzeWithMongo(companyVO.getName(),newsCode,functions[i],dateRange)+",").getBytes("utf-8"));
+						}
+						fos.write((aService.trainAnalyzeWithMongo(companyVO.getName(),newsCode,functions[7],dateRange)+"\n").getBytes("utf-8"));
+						fos.flush();
 					}
-					fos.write((aService.trainAnalyzeWithMongo(companyVO.getName(),newsCode,functions[7],dateRange)+"\n").getBytes("utf-8"));
-					fos.flush();
 				}catch(Exception e){
 					System.out.println(companyVO.getName());
 					e.printStackTrace();
