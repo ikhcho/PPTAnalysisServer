@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.mongodb.client.model.Filters;
 
+import kr.co.ppt.R.Dtree;
 import kr.co.ppt.analysis.Analysis;
 import kr.co.ppt.analysis.FilteredAnalysis;
 import kr.co.ppt.analysis.MergeAnalysis;
@@ -36,6 +37,9 @@ public class AnalysisService {
 	
 	@Autowired
 	DictionaryService dService;
+	
+	@Autowired
+	DtreeService dTreeService;
 	
 	public static Map<String,Double> fit = null;
 	public static Map<String,Double> meg = null;
@@ -181,6 +185,136 @@ public class AnalysisService {
 		return String.valueOf(analysis.getSuccess()*100 / analysis.getPredictCnt());
 	}
 	
+	public String trainAnalyzeWithMongo(String comName, String newsCode, String function, String[] dateRange, double from, double to){
+		long start = System.currentTimeMillis();
+		Analysis analysis = null;
+		JSONObject posJson = null;
+		JSONObject negJson = null;
+		JSONArray prodicArr = null;
+		Map<String,Double> tfidfMap = null;
+		JSONArray stockArr = sService.selectStock(comName);
+		List<String> csv = new ArrayList<String>();
+		switch(function){
+			case "fit1":
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
+				csv.add("fit1Inc,fit1Dec,fit1Equ,result");
+				break;
+			case "fit2":
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
+				csv.add("fit2Inc,fit2Dec,fit2Equ,result");
+				break;
+			case "meg1":
+				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
+				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
+				csv.add("meg1Inc,meg1Dec,meg1Equ,result");
+				break;
+			case "meg2":
+				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
+				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
+				csv.add("meg2Inc,meg2Dec,meg2Equ,result");
+				break;
+		}
+		
+		for(String date : dateRange){
+			NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+date+".json");
+			String predict = analysis.trainAnalyzeWithMongo(morpVO);
+			if(!predict.equals(""))
+				csv.add(predict);
+		}
+		makeCSV(comName,function,csv);
+		long end = System.currentTimeMillis();
+		System.out.println("MongDB - " + function + "analysis 수행 시간 : "+(end-start)/1000 + "s");
+		
+		return String.valueOf(analysis.getSuccess()*100 / analysis.getPredictCnt());
+	}
+	
+	public String dTreeAnalyze(String comName, String newsCode, String function, String[] dateRange){
+		long start = System.currentTimeMillis();
+		Analysis analysis = null;
+		JSONObject posJson = null;
+		JSONObject negJson = null;
+		JSONArray prodicArr = null;
+		Map<String,Double> tfidfMap = null;
+		JSONArray stockArr = sService.selectStock(comName);
+		JSONArray treeArr = null;
+		List<String> csv = new ArrayList<String>();
+		switch(function){
+			case "opi1":
+				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
+				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+				analysis = new OpiAnalysis(posJson,negJson,stockArr);
+				csv.add("opi1Inc,opi1Dec,result");
+				break;
+			case "opi2":
+				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
+				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+				analysis = new OpiAnalysis2(posJson,negJson,stockArr );
+				csv.add("opi2Inc,opi2Dec,result");
+				break;
+			case "pro1":
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				treeArr = dTreeService.selectDtree(comName, newsCode, function);
+				analysis = new ProAnalysis(prodicArr,stockArr,treeArr);
+				csv.add("pro1Inc,pro1Dec,pro1Equ,result");
+				break;
+			case "pro2":
+				prodicArr = dService.selectPro2DicMongo(comName, newsCode);
+				treeArr = dTreeService.selectDtree(comName, newsCode, function);
+				analysis = new ProAnalysis(prodicArr,stockArr,treeArr);
+				csv.add("pro2Inc,pro2Dec,pro1Equ,result");
+				break;
+			case "fit1":
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				//tfidfMap = dService.selectTFIDFMongo(newsCode, 3, 5);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,fit);
+				csv.add("fit1Inc,fit1Dec,fit1Equ,result");
+				break;
+			case "fit2":
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				//tfidfMap = dService.selectTFIDFMongo(newsCode, 3, 5);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,fit);
+				csv.add("fit2Inc,fit2Dec,fit2Equ,result");
+				break;
+			case "meg1":
+				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
+				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				//tfidfMap = dService.selectTFIDFMongo(newsCode, 3, 7);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,meg);
+				csv.add("meg1Inc,meg1Dec,meg1Equ,result");
+				break;
+			case "meg2":
+				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
+				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				//tfidfMap = dService.selectTFIDFMongo(newsCode, 3, 7);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,meg);
+				csv.add("meg2Inc,meg2Dec,meg2Equ,result");
+				break;
+		}
+		
+		for(String date : dateRange){
+			NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+date+".json");
+			String predict = analysis.trainAnalyzeWithMongo(morpVO);
+			if(!predict.equals(""))
+				csv.add(predict);
+		}
+		long end = System.currentTimeMillis();
+		System.out.println("MongDB - " + function + "analysis 수행 시간 : "+(end-start)/1000 + "s");
+		
+		return String.valueOf(analysis.getSuccess()*100 / analysis.getPredictCnt());
+	}
+	
 	public String analyze(MorpVO morpVO, String comName, String newsCode, String function){
 		long start = System.currentTimeMillis();
 		Analysis analysis = null;
@@ -236,6 +370,51 @@ public class AnalysisService {
 		long end = System.currentTimeMillis();
 		System.out.println(function + "analysis 수행 시간 : "+(end-start)/1000 + "s");
 		return comName + "의 " + function+ "analysis 수행 시간 : "+(end-start)/1000 + "s" + " : " + analysis.analyze(morpVO);
+	}
+	
+	public int getTfidfThreshold(String comName, String newsCode, String function, String[] dateRange, double from, double to){
+		long start = System.currentTimeMillis();
+		Analysis analysis = null;
+		JSONObject posJson = null;
+		JSONObject negJson = null;
+		JSONArray prodicArr = null;
+		Map<String,Double> tfidfMap = null;
+		JSONArray stockArr = sService.selectStock(comName);
+		switch(function){
+			case "fit1":
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
+				break;
+			case "fit2":
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
+				break;
+			case "meg1":
+				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
+				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
+				break;
+			case "meg2":
+				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
+				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
+				break;
+		}
+		
+		for(String date : dateRange){
+			NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+date+".json");
+			String predict = analysis.trainAnalyzeWithMongo(morpVO);
+		}
+		long end = System.currentTimeMillis();
+		System.out.println("MongDB - " + function + "analysis 수행 시간 : "+(end-start)/1000 + "s");
+		
+		return analysis.getSuccess()*100 / analysis.getPredictCnt();
 	}
 	
 	public void makeCSV(String comName, String function, List<String> csv){

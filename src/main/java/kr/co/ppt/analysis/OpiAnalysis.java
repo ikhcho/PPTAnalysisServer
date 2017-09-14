@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Set;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+
+import kr.co.ppt.R.Dtree;
 import kr.co.ppt.dictionary.OpiDicVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
@@ -136,7 +138,6 @@ public class OpiAnalysis implements Analysis{
 				break;
 			}
 		}
-		
 		if ((posScore > negScore && flucState.equals("p")) || (posScore < negScore &&flucState.equals("m"))) {
 			success++;
 		}

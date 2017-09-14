@@ -46,6 +46,18 @@ public class DictionaryController {
 		return  dService.selectOpiDicMongo(comName, opinion, newsCode).toJSONString();
 	}
 	
+	@RequestMapping("/mongo/selectProDic.do")
+	@ResponseBody
+	public String selectProDicMongo(String comName, String newsCode){
+		return  dService.selectProDicMongo(comName, newsCode).toJSONString();
+	}
+	
+	@RequestMapping("/mongo/selectPro2Dic.do")
+	@ResponseBody
+	public String selectPro2Dic(String comName, String newsCode){
+		return  dService.selectPro2DicMongo(comName, newsCode).toJSONString();
+	}
+	
 	@RequestMapping("/mongo/test.do")
 	@ResponseBody
 	public String selectMongoProdic(String comName){

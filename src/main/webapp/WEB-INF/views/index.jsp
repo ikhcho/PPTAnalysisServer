@@ -78,8 +78,8 @@ $(function(){
 			<td>
 				회사 리스트<br/>
 				<select name="comName">
-					<c:forEach items="${comList }" var="comName">
-						<option>${comName }
+					<c:forEach items="${comList }" var="companyVO">
+						<option>${companyVO.name }
 					</c:forEach>
 				</select>
 			</td>
@@ -97,8 +97,8 @@ $(function(){
 				<form action="${pageContext.request.contextPath }/analysis/trainAnalyze.do">
 					예측<br/>
 					<select name="comName">
-						<c:forEach items="${comList }" var="comName">
-							<option>${comName }
+						<c:forEach items="${comList }" var="companyVO">
+							<option>${companyVO.name }
 						</c:forEach>
 					</select>
 					<input type="text" name="newsCode" value="economic" readonly="readonly">
@@ -121,8 +121,8 @@ $(function(){
 			<td>
 				뉴스 실시간 예측<br/>
 				<select name="comName" id="anaComName">
-					<c:forEach items="${comList }" var="comName">
-						<option>${comName }
+					<c:forEach items="${comList }" var="companyVO">
+						<option>${companyVO.name }
 					</c:forEach>
 				</select>
 					<input type="text" name="newsCode" value="economic" readonly="readonly" id="anaCategory">

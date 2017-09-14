@@ -5,19 +5,19 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import kr.co.ppt.R.DecisionTree;
+import kr.co.ppt.R.Dtree;
+import kr.co.ppt.server.service.StockService;
 import kr.co.ppt.stock.KospiVO;
 
 @Controller
 public class HomeController {
 	@Autowired
-	KospiVO kospiVO;
+	StockService sService;
 	
 	@RequestMapping("/home.do")
 	public String home(Model model){
-		model.addAttribute("comList", kospiVO.getComNames());
-		//DecisionTree dTree = new DecisionTree();
-		//dTree.dTree();
+		model.addAttribute("comList", sService.selectComList());
+		
 		return "index";
 	}
 	
