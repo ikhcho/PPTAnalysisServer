@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Set;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+
+import kr.co.ppt.R.Dtree;
 import kr.co.ppt.dictionary.ProDicVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
@@ -19,6 +21,7 @@ public class ProAnalysis implements Analysis{
 	// MongoDB
 	private JSONArray prodicArr;
 	private JSONArray stockArr;
+	JSONArray treeArr =null;
 	private double incScore=0;
 	private double decScore=0;
 	private double equScore=0;
@@ -33,6 +36,12 @@ public class ProAnalysis implements Analysis{
 	public ProAnalysis(JSONArray prodicArr, JSONArray stockArr) {
 		this.prodicArr = prodicArr;
 		this.stockArr = stockArr;
+	}
+	
+	public ProAnalysis(JSONArray prodicArr, JSONArray stockArr, JSONArray treeArr) {
+		this.prodicArr = prodicArr;
+		this.stockArr = stockArr;
+		this.treeArr = treeArr;
 	}
 
 	@Override
@@ -133,23 +142,17 @@ public class ProAnalysis implements Analysis{
 			}
 		}
 		double total = incScore + decScore + equScore;
-		if ((incScore > decScore  && flucState.equals("p"))
-				|| (incScore < decScore && flucState.equals("m"))) {
-			success++;
-		}
-		/*if((incScore / total >= 0.497206 && flucState.equals("m")) || (incScore / total < 0.497206 && flucState.equals("m")))
-			success++;*/
-		/*if(incScore / total < 0.497206){
-			if(decScore / total <0.473089){
-				if(flucState.equals("-")){
-					success++;
-				}
-				else if(flucState.equals("m"))
-					success++;
+		if(treeArr == null){
+			if ((incScore > decScore  && flucState.equals("p"))
+					|| (incScore < decScore && flucState.equals("m"))) {
+				success++;
 			}
-		}else if(flucState.equals("p"))
-			success++;*/
-		
+		}else{
+			Dtree dTree = new Dtree();
+			dTree.setDtree(treeArr);
+			if(flucState.equals(dTree.getDecision(incScore / total, decScore / total, equScore / total)))
+				success++;
+		}
 		predictCnt++;
 		
 		String result = String.valueOf(incScore / total) 
