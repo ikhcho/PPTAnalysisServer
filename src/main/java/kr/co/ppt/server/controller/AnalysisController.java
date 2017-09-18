@@ -104,9 +104,9 @@ public class AnalysisController {
 			boolean go = false;
 			for(CompanyVO companyVO : sService.selectComList()){
 				try{
-					if(companyVO.getName().equals("한국카본"))
+					if(companyVO.getName().equals("아남전자"))
 						go=true;
-					//if(go){
+					if(go){
 						fos.write((companyVO.getName()+",").getBytes("utf-8"));
 						int fit1Max = 0;
 						double fit1From =0;
@@ -166,7 +166,7 @@ public class AnalysisController {
 						fos.write((meg2From+","+meg2To+"\n").getBytes("utf-8"));
 						aService.trainAnalyzeWithMongo(companyVO.getName(),newsCode,"meg2",megDateRange,meg2From,meg2To);
 						fos.flush();
-						//}
+						}
 				}catch(Exception e){
 					System.out.println(companyVO.getName());
 					e.printStackTrace();
