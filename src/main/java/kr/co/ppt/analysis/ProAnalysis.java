@@ -21,7 +21,7 @@ public class ProAnalysis implements Analysis{
 	// MongoDB
 	private JSONArray prodicArr;
 	private JSONArray stockArr;
-	JSONArray treeArr =null;
+	private JSONArray treeArr = null;
 	private double incScore=0;
 	private double decScore=0;
 	private double equScore=0;

@@ -12,6 +12,7 @@ import java.util.Set;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import kr.co.ppt.R.Dtree;
 import kr.co.ppt.dictionary.OpiDicVO;
 import kr.co.ppt.dictionary.ProDicVO;
 import kr.co.ppt.dictionary.TfidfVO;
@@ -30,6 +31,7 @@ public class MergeAnalysis implements Analysis{
 	private JSONObject negJson;
 	private JSONArray prodicArr;
 	private JSONArray stockArr;
+	private JSONArray treeArr = null;
 	private Map<String,Double> tfidfMap;
 	private double incScore=0;
 	private double decScore=0;
@@ -49,6 +51,15 @@ public class MergeAnalysis implements Analysis{
 
 	public MergeAnalysis(JSONObject posJson, JSONObject negJson, JSONArray prodicArr, 
 			JSONArray stockArr, Map<String,Double> tfidfMap) {
+		this.posJson = posJson;
+		this.negJson = negJson;
+		this.prodicArr = prodicArr;
+		this.stockArr = stockArr;
+		this.tfidfMap = tfidfMap;
+	}
+	
+	public MergeAnalysis(JSONObject posJson, JSONObject negJson, JSONArray prodicArr, 
+			JSONArray stockArr, Map<String,Double> tfidfMap, JSONArray treeArr) {
 		this.posJson = posJson;
 		this.negJson = negJson;
 		this.prodicArr = prodicArr;
@@ -191,13 +202,20 @@ public class MergeAnalysis implements Analysis{
 				break;
 			}
 		}
-		if ((incScore > decScore && flucState.equals("p"))
-				|| (incScore < decScore && flucState.equals("m"))) {
-			success++;
-		}
-		predictCnt++;
 		
 		double total = incScore + decScore + equScore;
+		if(treeArr == null){
+			if ((incScore > decScore && flucState.equals("p"))
+					|| (incScore < decScore && flucState.equals("m"))) {
+				success++;
+			}
+		}else{
+			Dtree dTree = new Dtree();
+			dTree.setDtree(treeArr);
+			if(flucState.equals(dTree.getDecision(incScore / total, decScore / total, equScore / total)))
+				success++;
+		}
+		predictCnt++;
 		String result = String.valueOf(incScore / total) 
 						+ "," + String.valueOf(decScore / total)
 						+ "," + String.valueOf(equScore / total)

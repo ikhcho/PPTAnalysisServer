@@ -34,22 +34,22 @@ public class AnalysisController {
 	
 	@RequestMapping("/trainAnalyze.do")
 	@ResponseBody
-	public String trainAnalyze(String comName, String newsCode, String function, String from, String to){
+	public String trainAnalyze(String comName, String newsCode, String function, String from, String to, double tfidfFrom, double tfidfTo){
 		System.out.println(comName+"의 주가 예측 요청");
 		String[] dateRange = Tool.dateRange(from, to);
 		//list.addAll(aService.trainAnalyze(comName,newsCode,function,dateRange));
 		
-		return aService.trainAnalyzeWithMongo(comName,newsCode,function,dateRange);
+		return aService.trainAnalyzeWithMongo(comName,newsCode,function,dateRange, tfidfFrom, tfidfTo);
 	}
 	
 	@RequestMapping("/compare.do")
 	@ResponseBody
-	public String compare(String comName, String newsCode, String function, String from, String to){
+	public String compare(String comName, String newsCode, String function, String from, String to, double tfidfFrom, double tfidfTo){
 		System.out.println(comName+"의 주가 예측 요청");
 		String[] dateRange = Tool.dateRange(from, to);
-		String result = aService.trainAnalyzeWithMongo(comName,newsCode,function,dateRange);
+		String result = aService.trainAnalyzeWithMongo(comName,newsCode,function,dateRange, tfidfFrom, tfidfTo);
 		result += "<br/>";
-		result += aService.dTreeAnalyze(comName,newsCode,function,dateRange);
+		result += aService.dTreeAnalyze(comName,newsCode,function,dateRange, tfidfFrom, tfidfTo);
 		return result;
 	}
 	
@@ -189,27 +189,29 @@ public class AnalysisController {
 		aService.meg = dService.selectTFIDFMongo("economic", 3, 5);
 		String newsCode = "economic";
 		String from = "20170701";
-		String to = "20170828";
+		String to = "20170911";
 		String[] dateRange = Tool.dateRange(from, to);
-		String[] functions = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
-		String path = "D:\\PPT\\analysis\\result.csv";
+		String[] functions = {"opi1","opi2","pro1","pro2"};
+		String path = "D:\\PPT\\analysis\\opi_pro.csv";
 		FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(path);
-			//fos.write(("comName,opi1,opi2,pro1,pro2,fit1,fit2,meg1,meg2\n").getBytes("utf-8"));
+			fos.write(("comName,opi1_before,opi2_before,pro1_before,pro2_before,opi1_after,opi2_after,pro1_after,pro2_after\n").getBytes("utf-8"));
 			boolean go = false;
 			for(CompanyVO companyVO : sService.selectComList()){
 				try{
 					if(companyVO.getName().equals("한국카본"))
 						go=true;
-					if(go){
+					//if(go){
 						fos.write((companyVO.getName()+",").getBytes("utf-8"));
-						for(int i=0; i<7; i++){
+						for(int i=0; i<3; i++){
 							fos.write((aService.trainAnalyzeWithMongo(companyVO.getName(),newsCode,functions[i],dateRange)+",").getBytes("utf-8"));
+							fos.write((aService.dTreeAnalyze(companyVO.getName(),newsCode,functions[i],dateRange,0,0)+",").getBytes("utf-8"));
 						}
-						fos.write((aService.trainAnalyzeWithMongo(companyVO.getName(),newsCode,functions[7],dateRange)+"\n").getBytes("utf-8"));
+						fos.write((aService.trainAnalyzeWithMongo(companyVO.getName(),newsCode,functions[3],dateRange)+",").getBytes("utf-8"));
+						fos.write((aService.dTreeAnalyze(companyVO.getName(),newsCode,functions[3],dateRange,0,0)+"\n").getBytes("utf-8"));
 						fos.flush();
-					}
+					//}
 				}catch(Exception e){
 					System.out.println(companyVO.getName());
 					e.printStackTrace();

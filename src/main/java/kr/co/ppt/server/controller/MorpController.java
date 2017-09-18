@@ -104,12 +104,16 @@ public class MorpController {
 		Map<String,Integer> morp = mService.getNewsMorp1(url).getMorp();
 		JSONObject obj = new JSONObject(morp);
 		Iterator iter = morp.keySet().iterator();
-		String result = "";
+		String result = "[";
 		while(iter.hasNext()){
-			result += "\'";
-			result += iter.next();
-			result += "\',";
+			String key = (String)iter.next();
+			result += "{\"key\":\"";
+			result += key;
+			result += "\",\"value\":";
+			result += (morp.get(key)*5)+"},";
 		}
+		result = result.substring(0, result.length()-1);
+		result += "]";
 		requestCnt--;
 		ableMethod[0] = true;
 		return result;
@@ -131,7 +135,7 @@ public class MorpController {
 		}
 		requestCnt--;
 		ableMethod[1] = true;
-		return result;
+		return obj.toJSONString();
 	}
 	
 	@RequestMapping("/reqNews3.do")
@@ -151,7 +155,7 @@ public class MorpController {
 		}
 		requestCnt--;
 		ableMethod[2] = true;
-		return result;
+		return obj.toJSONString();
 	}
 	
 	@RequestMapping("/reqFile.do")

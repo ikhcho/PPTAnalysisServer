@@ -23,6 +23,7 @@ public class OpiAnalysis implements Analysis{
 	private JSONObject posJson;
 	private JSONObject negJson;
 	private JSONArray stockArr;
+	private JSONArray treeArr = null;
 	private int success = 0;
 	private int posScore=0;
 	private int negScore=0;
@@ -39,6 +40,13 @@ public class OpiAnalysis implements Analysis{
 		this.negJson = negJson;
 		this.stockArr = stockArr;
 		
+	}
+	
+	public OpiAnalysis(JSONObject posJson, JSONObject negJson, JSONArray stockArr, JSONArray treeArr) {
+		this.posJson = posJson;
+		this.negJson = negJson;
+		this.stockArr = stockArr;
+		this.treeArr = treeArr;
 	}
 
 	@Override
@@ -138,10 +146,19 @@ public class OpiAnalysis implements Analysis{
 				break;
 			}
 		}
-		if ((posScore > negScore && flucState.equals("p")) || (posScore < negScore &&flucState.equals("m"))) {
-			success++;
-		}
+		
 		double total = posScore + negScore;
+		
+		if(treeArr == null){
+			if ((posScore > negScore && flucState.equals("p")) || (posScore < negScore &&flucState.equals("m"))) {
+				success++;
+			}
+		}else{
+			Dtree dTree = new Dtree();
+			dTree.setDtree(treeArr);
+			if(flucState.equals(dTree.getDecision(posScore / total, negScore / total, 0)))
+				success++;
+		}
 		predictCnt++;
 		
 		String result = String.valueOf(posScore/total) + "," + String.valueOf(negScore/total) + ","+flucState;

@@ -33,11 +33,12 @@ public class Dtree {
 
 		String filePath = "'D:/PPT/analysis/" + comName + "_" + function + ".csv'";
 		connection.eval("df <- read.csv(" + filePath + ")");
-		System.out.println("기업명 : " + filePath.substring(9, filePath.length() - 5));
+		System.out.println("기업명 : " + comName + "_" + function);
 		// 의사결정트리 생성
 		connection.eval("data1 <- dTree(df)");
 		// dTree 정의
-		connection.eval("intrain<-createDataPartition(y=df$result, p=1, list=FALSE)");
+		connection.eval("set.seed(1000)");
+		connection.eval("intrain<-createDataPartition(y=df$result, p=0.9, list=FALSE)");
 		connection.eval("train<-df[intrain, ]");
 		connection.eval("test<-df[-intrain, ]");
 		connection.eval("treemod<-tree(result~. , data=train)");
@@ -92,7 +93,7 @@ public class Dtree {
 		for (int i = 0; i < var.length; i++) {
 			String[] branch = new String[4]; //[0] = 기준, [1] = 조건, [2] = 결과, [3] = 층
 			if (var[i].equals("") || splits[i].equals("")) {
-				branch[0] = ("<leaf>");
+				branch[0] = ("leaf");
 				branch[1] = ("-");
 				branch[2] = (yVal[i]);
 				tree.add(branch);
@@ -113,7 +114,7 @@ public class Dtree {
 		for(int i=0; i<tree.size(); i++){
 			tree.get(i)[3] = String.valueOf(floor);
 			prune[floor-1]++; // 층수 카운트증가
-			if(!tree.get(i)[0].equals("<leaf>")){
+			if(!tree.get(i)[0].equals("leaf")){
 				floor++;
 			}else{
 				if(prune[floor-1]%2 == 0){//각층은 짝수로 존재해야한다. 
@@ -141,7 +142,7 @@ public class Dtree {
 	public String getDecision(double incScore, double decScore, double equScore){
 		int branch = 0;
 		System.out.println("현재 브랜치 : " + (branch+1));
-		while(!tree.get(branch)[0].equals("<leaf>")){
+		while(!tree.get(branch)[0].equals("leaf")){
 			if (tree.get(branch)[0].contains("Inc")) {
 				branch = compare(incScore, branch);
 			}else if(tree.get(branch)[0].contains("Dec")){

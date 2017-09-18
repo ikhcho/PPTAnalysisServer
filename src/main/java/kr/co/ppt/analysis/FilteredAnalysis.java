@@ -12,6 +12,7 @@ import java.util.Set;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import kr.co.ppt.R.Dtree;
 import kr.co.ppt.dictionary.ProDicVO;
 import kr.co.ppt.dictionary.TfidfVO;
 import kr.co.ppt.morp.MorpVO;
@@ -26,6 +27,7 @@ public class FilteredAnalysis implements Analysis{
 	private JSONArray prodicArr;
 	private JSONArray stockArr;
 	private Map<String,Double> tfidfMap;
+	private JSONArray treeArr = null;
 	private double incScore=0;
 	private double decScore=0;
 	private double equScore=0;
@@ -43,6 +45,13 @@ public class FilteredAnalysis implements Analysis{
 		this.prodicArr = prodicArr;
 		this.stockArr = stockArr;
 		this.tfidfMap = tfidfMap;
+	}
+	
+	public FilteredAnalysis(JSONArray prodicArr, JSONArray stockArr, Map<String,Double> tfidfMap, JSONArray treeArr) {
+		this.prodicArr = prodicArr;
+		this.stockArr = stockArr;
+		this.tfidfMap = tfidfMap;
+		this.treeArr = treeArr;
 	}
 	@Override
 	public String trainAnalyze(NewsMorpVO morpVO) {
@@ -157,9 +166,16 @@ public class FilteredAnalysis implements Analysis{
 			}
 		}
 		double total = incScore + decScore + equScore;
-		if ((incScore > decScore && flucState.equals("p"))
-				|| (incScore < decScore && flucState.equals("m"))) {
-			success++;
+		if(treeArr == null){
+			if ((incScore > decScore && flucState.equals("p"))
+					|| (incScore < decScore && flucState.equals("m"))) {
+				success++;
+			}
+		}else{
+			Dtree dTree = new Dtree();
+			dTree.setDtree(treeArr);
+			if(flucState.equals(dTree.getDecision(incScore / total, decScore / total, equScore / total)))
+				success++;
 		}
 		predictCnt++;
 		

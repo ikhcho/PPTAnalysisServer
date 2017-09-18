@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Set;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+
+import kr.co.ppt.R.Dtree;
 import kr.co.ppt.dictionary.OpiDicVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
@@ -21,6 +23,7 @@ public class OpiAnalysis2 implements Analysis{
 	private JSONObject posJson;
 	private JSONObject negJson;
 	private JSONArray stockArr;
+	private JSONArray treeArr = null;
 	private int success = 0;
 	private int posScore=0;
 	private int negScore=0;
@@ -38,6 +41,13 @@ public class OpiAnalysis2 implements Analysis{
 		this.negJson = negJson;
 		this.stockArr = stockArr;
 		
+	}
+	
+	public OpiAnalysis2(JSONObject posJson, JSONObject negJson, JSONArray stockArr, JSONArray treeArr) {
+		this.posJson = posJson;
+		this.negJson = negJson;
+		this.stockArr = stockArr;
+		this.treeArr = treeArr;
 	}
 	
 	@Override
@@ -138,11 +148,21 @@ public class OpiAnalysis2 implements Analysis{
 			}
 		}
 		
-		if ((posScore > negScore && flucState.equals("p")) || (posScore < negScore &&flucState.equals("m"))) {
-			success++;
+		double total = posScore + negScore;
+		
+		if(treeArr == null){
+			if ((posScore > negScore && flucState.equals("p")) || (posScore < negScore &&flucState.equals("m"))) {
+				success++;
+			}
+		}else{
+			Dtree dTree = new Dtree();
+			dTree.setDtree(treeArr);
+			if(flucState.equals(dTree.getDecision(posScore / total, negScore / total, 0)))
+				success++;
 		}
 		
-		double total = posScore + negScore;
+		
+		
 		predictCnt++;
 		
 		String result = String.valueOf(posScore/total) + "," + String.valueOf(negScore/total) + ","+flucState;

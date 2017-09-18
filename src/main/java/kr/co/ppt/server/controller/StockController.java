@@ -1,11 +1,18 @@
 package kr.co.ppt.server.controller;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import kr.co.ppt.server.service.StockService;
+import kr.co.ppt.stock.CompanyVO;
 
 @Controller
 @RequestMapping("/stock")
@@ -13,6 +20,21 @@ public class StockController {
 	
 	@Autowired
 	StockService sService;
+	
+	@RequestMapping("/selectCompanyList.do")
+	@ResponseBody
+	public String selectCompanyList() {
+		List<CompanyVO> list = sService.selectComList();
+		JSONArray result = new JSONArray();
+		for(CompanyVO companyVO : list){
+			Map<String, String> map = new HashMap<>();
+			map.put("comName", companyVO.getName());
+			map.put("comCode", companyVO.getCode());
+			JSONObject jsonObj = new JSONObject(map);
+			result.add(jsonObj);			
+		}
+		return result.toJSONString();
+	}
 	
 	//사전 데이터 저장용
 	@RequestMapping("/mongo/insertStock.do")
