@@ -40,6 +40,16 @@ public class DaumNewsDom implements JsoupDom{
 		return new ArrayList<String>(new HashSet<String>(list));
 	}
 	
+	public List<String> getHeadHref() {
+		List<String> list = new ArrayList<String>();
+		
+		Elements els = dom.select(".view_list").select("a");
+		for (Element e : els) {
+			list.add(e.attr("href"));
+		}
+		return new ArrayList<String>(new HashSet<String>(list));
+	}
+	
 	public String getWriteDate(){
 		Elements els = dom.select("span[class=info_view]").select("span");
 		String res="";
@@ -73,5 +83,19 @@ public class DaumNewsDom implements JsoupDom{
 		}
 		return res;
 	}
-
+	
+	public String getTitle(){
+		Elements els = dom.select("h3[class=tit_view]");
+		String res="";
+		for (Element e : els) {
+			res+=e.text();
+		}
+		return res;
+	}
+	public String getHeadTitle() {
+		String href = "";
+		Element e = dom.select(".view_list").select("a").first();
+		href = e.text();
+		return href;
+	}
 }
