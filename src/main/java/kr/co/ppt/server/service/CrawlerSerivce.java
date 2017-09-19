@@ -123,7 +123,7 @@ public class CrawlerSerivce {
 				arr.add(obj);
 			}
 			DaumNewsDom daum = new DaumNewsDom();
-			daum.setDom(Jsoup.connect(newsCodeMap.get("http://media.daum.net/")).get());
+			daum.setDom(Jsoup.connect("http://media.daum.net/").get());
 			Map<String,String> map = new HashMap<>();
 			map.put("newsCode", "main");
 			map.put("title", daum.getHeadTitle());
