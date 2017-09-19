@@ -1,12 +1,12 @@
 package kr.co.ppt.server.controller;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +19,6 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Indexes;
 
-import kr.co.ppt.crawler.NewsCategoryVO;
 import kr.co.ppt.server.service.CrawlerSerivce;
 
 @Controller
@@ -59,9 +58,10 @@ public class CrawlerController {
 	
 	@RequestMapping("recentNews.do")
 	@ResponseBody
-	public String recentNews(String newsCode, String num){
+	public String recentNews(String newsCode, String num, String callback) throws ParseException{
+		JSONParser parser = new JSONParser();
 		if(newsCode == null && num == null){
-			return cService.recentNews();
+			return  callback+"("+cService.recentNews().toJSONString()+")";
 		}else{
 			return cService.recentNews(newsCode,Integer.parseInt(num));
 		}
