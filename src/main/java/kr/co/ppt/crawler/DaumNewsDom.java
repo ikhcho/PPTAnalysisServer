@@ -91,6 +91,9 @@ public class DaumNewsDom implements JsoupDom{
 		for (Element e : els) {
 			res+=e.text().replaceAll(match, "").replaceAll("\"", "");
 		}
+		if(res.equals("")){
+			res = dom.select("div[class=tit_subject]").first().text();
+		}
 		return res;
 	}
 	public String getHeadTitle() {

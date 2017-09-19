@@ -104,47 +104,41 @@ public class CrawlerSerivce {
 */	}
 	
 	public JSONArray recentNews(){
-		String result ="{[";
 		JSONArray arr = new JSONArray();
 		try{
-			JSONObject obj = new JSONObject();
-			JSONParser parser = new JSONParser();
 			Map<String, String> newsCodeMap = NewsCategoryVO.getTabMap();
 			Iterator<String> newsCodeIter = newsCodeMap.keySet().iterator();
 			while(newsCodeIter.hasNext()){
 				String newsCode = newsCodeIter.next();
 				DaumNewsDom daum = new DaumNewsDom();
 				daum.setDom(Jsoup.connect(newsCodeMap.get(newsCode)).get());
-				if(newsCode.equals("main")){
-					result = "{\"newsCode\" : \"" + newsCode + "\"";
-					result += ", \"title\" : \"" + daum.getHeadTitle() + "\"";
-					result += ", \"link\" : \"" + daum.getHeadHref().get(0) + "\"}";
-					obj = (JSONObject)parser.parse(result);
-					arr.add(obj);
-				}else{
-					List<String> hrefList = daum.getHref();
-					DaumNewsDom news = new DaumNewsDom();
-					news.setDom(Jsoup.connect(hrefList.get(0)).get());
-					result = "{\"newsCode\" : \"" + newsCode + "\"";
-					result += ", \"title\" : \"" + news.getTitle() + "\"";
-					result += ", \"link\" : \"" + hrefList.get(0) + "\"}";
-					obj = (JSONObject)parser.parse(result);
-					arr.add(obj);
-				}
+				List<String> hrefList = daum.getHref();
+				DaumNewsDom news = new DaumNewsDom();
+				news.setDom(Jsoup.connect(hrefList.get(0)).get());
+				Map<String,String> map = new HashMap<>();
+				map.put("newsCode", newsCode);
+				map.put("title", news.getTitle());
+				map.put("link", hrefList.get(0));
+				JSONObject obj = new JSONObject(map);
+				arr.add(obj);
 			}
+			DaumNewsDom daum = new DaumNewsDom();
+			daum.setDom(Jsoup.connect(newsCodeMap.get("http://media.daum.net/")).get());
+			Map<String,String> map = new HashMap<>();
+			map.put("newsCode", "main");
+			map.put("title", daum.getHeadTitle());
+			map.put("link", daum.getHeadHref().get(0));
+			JSONObject obj = new JSONObject(map);
+			arr.add(obj);
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		result = result.substring(0, result.length()-1);
-		result += "]}";
-		
 		return arr;
 	}
 	
-	public String recentNews(String newsCode, int num){
+	public JSONArray recentNews(String newsCode, int num){
+		JSONArray arr = new JSONArray();
 		String url = NewsCategoryVO.getTabMap().get(newsCode);
-		
-		String result ="{[";
 		try{
 			DaumNewsDom daum = new DaumNewsDom();
 			daum.setDom(Jsoup.connect(url).get());
@@ -152,15 +146,16 @@ public class CrawlerSerivce {
 			for(int i=0; i<num; i++){
 				DaumNewsDom news = new DaumNewsDom();
 				news.setDom(Jsoup.connect(hrefList.get(i)).get());
-				result += "{\"newsCode\" : \"" + newsCode + "\"";
-				result += ", \"title\" : \"" + news.getTitle() + "\"";
-				result += ", \"link\" : \"" + hrefList.get(i) + "\"},";
+				Map<String,String> map = new HashMap<>();
+				map.put("newsCode", newsCode);
+				map.put("title", news.getTitle());
+				map.put("link", hrefList.get(i));
+				JSONObject obj = new JSONObject(map);
+				arr.add(obj);
 			}
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		result = result.substring(0, result.length()-1);
-		result += "]}";
-		return result;
+		return arr;
 	}
 }

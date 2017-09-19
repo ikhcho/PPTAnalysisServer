@@ -58,12 +58,17 @@ public class CrawlerController {
 	
 	@RequestMapping("recentNews.do")
 	@ResponseBody
-	public String recentNews(String newsCode, String num, String callback) throws ParseException{
-		JSONParser parser = new JSONParser();
+	public String recentNews(String newsCode, String num, String callback){
 		if(newsCode == null && num == null){
-			return  callback+"("+cService.recentNews().toJSONString()+")";
+			if(callback == null)
+				return cService.recentNews().toJSONString();
+			else
+				return  callback+"("+cService.recentNews().toJSONString()+")";
 		}else{
-			return cService.recentNews(newsCode,Integer.parseInt(num));
+			if(callback == null)
+				return cService.recentNews(newsCode,Integer.parseInt(num)).toJSONString();
+			else
+				return  callback+"("+cService.recentNews(newsCode,Integer.parseInt(num)).toJSONString()+")";
 		}
 	}
 }
