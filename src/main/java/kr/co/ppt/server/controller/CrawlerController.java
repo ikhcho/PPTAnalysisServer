@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,11 +27,12 @@ public class CrawlerController {
 		cService.craw();
 	}
 	
-	@RequestMapping("recentNews.do")
+	@RequestMapping(value="recentNews.do")
 	@ResponseBody
-	public String recentNews(String newsCode, String num){
+	public String recentNews(String newsCode, String num, String callback) throws ParseException{
+		JSONParser parser = new JSONParser();
 		if(newsCode == null && num == null){
-			return cService.recentNews();
+			return  callback+"("+cService.recentNews().toJSONString()+")";
 		}else{
 			return cService.recentNews(newsCode,Integer.parseInt(num));
 		}

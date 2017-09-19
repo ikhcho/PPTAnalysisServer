@@ -9,6 +9,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -81,10 +84,12 @@ public class CrawlerSerivce {
 		//
 	}
 	
-	public String recentNews(){
+	public JSONArray recentNews(){
 		String result ="{[";
+		JSONArray arr = new JSONArray();
 		try{
-			
+			JSONObject obj = new JSONObject();
+			JSONParser parser = new JSONParser();
 			Map<String, String> newsCodeMap = NewsCategoryVO.getTabMap();
 			Iterator<String> newsCodeIter = newsCodeMap.keySet().iterator();
 			while(newsCodeIter.hasNext()){
@@ -92,16 +97,20 @@ public class CrawlerSerivce {
 				DaumNewsDom daum = new DaumNewsDom();
 				daum.setDom(Jsoup.connect(newsCodeMap.get(newsCode)).get());
 				if(newsCode.equals("main")){
-					result += "{\"newsCode\" : \"" + newsCode + "\"";
+					result = "{\"newsCode\" : \"" + newsCode + "\"";
 					result += ", \"title\" : \"" + daum.getHeadTitle() + "\"";
-					result += ", \"link\" : \"" + daum.getHeadHref().get(0) + "\"},";
+					result += ", \"link\" : \"" + daum.getHeadHref().get(0) + "\"}";
+					obj = (JSONObject)parser.parse(result);
+					arr.add(obj);
 				}else{
 					List<String> hrefList = daum.getHref();
 					DaumNewsDom news = new DaumNewsDom();
 					news.setDom(Jsoup.connect(hrefList.get(0)).get());
-					result += "{\"newsCode\" : \"" + newsCode + "\"";
+					result = "{\"newsCode\" : \"" + newsCode + "\"";
 					result += ", \"title\" : \"" + news.getTitle() + "\"";
-					result += ", \"link\" : \"" + hrefList.get(0) + "\"},";
+					result += ", \"link\" : \"" + hrefList.get(0) + "\"}";
+					obj = (JSONObject)parser.parse(result);
+					arr.add(obj);
 				}
 			}
 		}catch(Exception e){
@@ -109,7 +118,8 @@ public class CrawlerSerivce {
 		}
 		result = result.substring(0, result.length()-1);
 		result += "]}";
-		return result;
+		
+		return arr;
 	}
 	
 	public String recentNews(String newsCode, int num){

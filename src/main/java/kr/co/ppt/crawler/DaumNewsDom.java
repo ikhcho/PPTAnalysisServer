@@ -87,15 +87,17 @@ public class DaumNewsDom implements JsoupDom{
 	public String getTitle(){
 		Elements els = dom.select("h3[class=tit_view]");
 		String res="";
+		String match = "[^\uAC00-\uD7A3xfe0-9a-zA-Z\\s]";
 		for (Element e : els) {
-			res+=e.text();
+			res+=e.text().replaceAll(match, "").replaceAll("\"", "");
 		}
 		return res;
 	}
 	public String getHeadTitle() {
 		String href = "";
 		Element e = dom.select(".view_list").select("a").first();
-		href = e.text();
+		String match = "[^\uAC00-\uD7A3xfe0-9a-zA-Z\\s]";
+		href = e.text().replaceAll(match, "").replaceAll("\"", "");
 		return href;
 	}
 }
