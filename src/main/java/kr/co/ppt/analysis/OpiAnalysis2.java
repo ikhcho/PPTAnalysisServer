@@ -11,14 +11,12 @@ import org.json.simple.JSONObject;
 
 import kr.co.ppt.R.Dtree;
 import kr.co.ppt.dictionary.OpiDicVO;
+import kr.co.ppt.morp.FileMorpVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
 import kr.co.ppt.util.Tool;
 
 public class OpiAnalysis2 implements Analysis{
-	//OracleDB
-	private List<OpiDicVO> posList;
-	private List<OpiDicVO> negList;
 	// MongoDB
 	private JSONObject posJson;
 	private JSONObject negJson;
@@ -29,21 +27,13 @@ public class OpiAnalysis2 implements Analysis{
 	private int negScore=0;
 	private int predictCnt=0;
 	
-	public OpiAnalysis2(List<OpiDicVO> posList, List<OpiDicVO> negList, JSONArray stockArr) {
-		super();
-		this.posList = posList;
-		this.negList = negList;
-		this.stockArr = stockArr;
-	}
-
-	public OpiAnalysis2(JSONObject posJson, JSONObject negJson, JSONArray stockArr) {
+	public OpiAnalysis2(JSONObject posJson, JSONObject negJson) {
 		this.posJson = posJson;
 		this.negJson = negJson;
-		this.stockArr = stockArr;
 		
 	}
 	
-	public OpiAnalysis2(JSONObject posJson, JSONObject negJson, JSONArray stockArr, JSONArray treeArr) {
+	public OpiAnalysis2(JSONObject posJson, JSONObject negJson, JSONArray stockArr) {
 		this.posJson = posJson;
 		this.negJson = negJson;
 		this.stockArr = stockArr;
@@ -52,43 +42,6 @@ public class OpiAnalysis2 implements Analysis{
 	
 	@Override
 	public String trainAnalyze(NewsMorpVO morpVO) {
-		posScore=0;
-		negScore=0;
-		String predicDate = Tool.getDate(morpVO.getNewsDate(), 1);
-		if(Tool.isOpen(predicDate)){
-			//공휴일 및 주말과 같은 장이 시작되지 않은 날은 이전 자료를 가져온다.
-			List<NewsMorpVO> morpList = Tool.mergeVO(morpVO);
-			Set<String> NewsMorpSet = new HashSet<String>();
-			for(NewsMorpVO morp: morpList){
-				//D+1예측은 D_begin+D_append + (D+1)_prev 
-				NewsMorpSet.addAll(morp.getBegin().keySet());
-				NewsMorpSet.addAll(morp.getAppend().keySet());
-				NewsMorpSet.addAll(new NewsMorpVO("D:\\PPT\\mining\\"+morp.getCategory()+Tool.getDate(morp.getNewsDate(), 1)+".json").getPrev().keySet());
-			}
-			Iterator<String> iter = NewsMorpSet.iterator();
-			while (iter.hasNext()) {
-				String key = iter.next();
-				for (OpiDicVO pos : posList) {
-					if (pos.getTerm().equals(key)) {
-						posScore += pos.getWeight();
-						break;
-					}
-				}
-				for (OpiDicVO neg : negList) {
-					if (neg.getTerm().equals(key)) {
-						negScore += neg.getWeight();
-						break;
-					}
-				}
-			}
-			return predict(predicDate);
-		}else{
-			return "";
-		}
-	}
-	
-	@Override
-	public String trainAnalyzeWithMongo(NewsMorpVO morpVO) {
 		posScore=0;
 		negScore=0;
 		String predicDate = Tool.getDate(morpVO.getNewsDate(), 1);
@@ -117,7 +70,47 @@ public class OpiAnalysis2 implements Analysis{
 	}
 	
 	@Override
-	public String analyze(MorpVO morpVO) {
+	public String realtimeAnalyze(FileMorpVO morpVO) {
+		posScore=0;
+		negScore=0;
+		String predicDate = Tool.getDate(morpVO.getNewsDate(), 1);
+		// 공휴일 및 주말과 같은 장이 시작되지 않은 날은 이전 자료를 가져온다.
+		List<FileMorpVO> morpList = Tool.mergeVO(morpVO);
+		Set<String> NewsMorpSet = new HashSet<String>();
+		for (FileMorpVO morp : morpList) {
+			// D+1예측은 D_begin+D_append + (D+1)_prev
+			NewsMorpSet.addAll(morp.getBegin().keySet());
+			NewsMorpSet.addAll(morp.getPrev().keySet());
+			NewsMorpSet.addAll(new NewsMorpVO(
+					"D:\\PPT\\mining\\" + morp.getCategory() + Tool.getDate(morp.getNewsDate(), -1) + ".json")
+							.getAppend().keySet());
+		}
+		Iterator<String> iter = NewsMorpSet.iterator();
+		while (iter.hasNext()) {
+			String key = iter.next();
+			if (posJson.containsKey(key))
+				posScore += Float.parseFloat((String) posJson.get(key));
+			else if (negJson.containsKey(key))
+				negScore += Float.parseFloat((String) negJson.get(key));
+		}
+		String flucState="";
+		double total = posScore + negScore;
+		
+		if(treeArr == null){
+			if (posScore > negScore)
+				flucState="p";
+			else if(posScore < negScore)
+				flucState="m";
+		}else{
+			Dtree dTree = new Dtree();
+			dTree.setDtree(treeArr);
+			flucState = dTree.getDecision(posScore / total, negScore / total, 0);
+		}
+		return flucState;
+	}
+	
+	@Override
+	public String userReqAnalyze(MorpVO morpVO) {
 		posScore=0;
 		negScore=0;
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -130,11 +123,20 @@ public class OpiAnalysis2 implements Analysis{
 			else if(negJson.containsKey(key))
 				negScore += Float.parseFloat((String)negJson.get(key));
 		}
+		String flucState="";
 		double total = posScore + negScore;
-		String result = predicDate + " 예측 : " 
-				+ String.valueOf(posScore/total) + "," 
-				+ String.valueOf(negScore/total);
-		return result;
+		
+		if(treeArr == null){
+			if (posScore > negScore)
+				flucState="p";
+			else if(posScore < negScore)
+				flucState="m";
+		}else{
+			Dtree dTree = new Dtree();
+			dTree.setDtree(treeArr);
+			flucState = dTree.getDecision(posScore / total, negScore / total, 0);
+		}
+		return flucState;
 	}
 	
 	@Override
@@ -161,8 +163,6 @@ public class OpiAnalysis2 implements Analysis{
 				success++;
 		}
 		
-		
-		
 		predictCnt++;
 		
 		String result = String.valueOf(posScore/total) + "," + String.valueOf(negScore/total) + ","+flucState;
@@ -178,5 +178,9 @@ public class OpiAnalysis2 implements Analysis{
 	public int getPredictCnt() {
 		return predictCnt;
 	}
-
+	
+	@Override
+	public void setTreeArr(JSONArray treeArr) {
+		this.treeArr = treeArr;
+	}
 }

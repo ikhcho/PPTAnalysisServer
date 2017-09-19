@@ -2,6 +2,7 @@ package kr.co.ppt.crawler;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -37,7 +38,7 @@ public class DaumNewsDom implements JsoupDom{
 		for (Element e : els) {
 			list.add(e.attr("href"));
 		}
-		return new ArrayList<String>(new HashSet<String>(list));
+		return new ArrayList<String>(new LinkedHashSet<String>(list));
 	}
 	
 	public List<String> getHeadHref() {
@@ -47,7 +48,7 @@ public class DaumNewsDom implements JsoupDom{
 		for (Element e : els) {
 			list.add(e.attr("href"));
 		}
-		return new ArrayList<String>(new HashSet<String>(list));
+		return new ArrayList<String>(new LinkedHashSet<String>(list));
 	}
 	
 	public String getWriteDate(){

@@ -27,10 +27,11 @@ public class CrawlerController {
 	@Autowired
 	CrawlerSerivce cService;
 	
-	@RequestMapping("craw.do")
-	public void craw(){
-		Map<String,String> recentNews = new HashMap<>();
-		cService.craw();
+	@RequestMapping("batch.do")
+	@ResponseBody
+	public String batch(){
+		cService.batch();
+		return "끝";
 	}
 	
 	@RequestMapping("selectNews.do")

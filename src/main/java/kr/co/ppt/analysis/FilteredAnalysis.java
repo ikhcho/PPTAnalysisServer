@@ -15,14 +15,12 @@ import org.json.simple.JSONObject;
 import kr.co.ppt.R.Dtree;
 import kr.co.ppt.dictionary.ProDicVO;
 import kr.co.ppt.dictionary.TfidfVO;
+import kr.co.ppt.morp.FileMorpVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
 import kr.co.ppt.util.Tool;
 
 public class FilteredAnalysis implements Analysis{
-	//OracleDB
-	private List<ProDicVO> proDicList;
-	private List<TfidfVO> tfidfList;
 	// MongoDB
 	private JSONArray prodicArr;
 	private JSONArray stockArr;
@@ -34,11 +32,10 @@ public class FilteredAnalysis implements Analysis{
 	private int success = 0;
 	private int predictCnt=0;
 	
-	public FilteredAnalysis(List<ProDicVO> proDicList, JSONArray stockArr, List<TfidfVO> tfidfList) {
-		super();
-		this.proDicList = proDicList;
-		this.stockArr = stockArr;
-		this.tfidfList = tfidfList;
+	
+	public FilteredAnalysis(JSONArray prodicArr, Map<String,Double> tfidfMap) {
+		this.prodicArr = prodicArr;
+		this.tfidfMap = tfidfMap;
 	}
 	
 	public FilteredAnalysis(JSONArray prodicArr, JSONArray stockArr, Map<String,Double> tfidfMap) {
@@ -47,48 +44,8 @@ public class FilteredAnalysis implements Analysis{
 		this.tfidfMap = tfidfMap;
 	}
 	
-	public FilteredAnalysis(JSONArray prodicArr, JSONArray stockArr, Map<String,Double> tfidfMap, JSONArray treeArr) {
-		this.prodicArr = prodicArr;
-		this.stockArr = stockArr;
-		this.tfidfMap = tfidfMap;
-		this.treeArr = treeArr;
-	}
 	@Override
 	public String trainAnalyze(NewsMorpVO morpVO) {
-		incScore=0;
-		decScore=0;
-		equScore=0;
-		String predicDate = Tool.getDate(morpVO.getNewsDate(), 1);
-		if(Tool.isOpen(predicDate)){
-			List<NewsMorpVO> morpList = Tool.mergeVO(morpVO);
-			Set<String> NewsMorpSet = new HashSet<String>();
-			for(NewsMorpVO morp: morpList){
-				NewsMorpSet.addAll(morp.getBegin().keySet());
-				NewsMorpSet.addAll(morp.getAppend().keySet());
-				NewsMorpSet.addAll(new NewsMorpVO("D:\\PPT\\mining\\"+morp.getCategory()+Tool.getDate(morp.getNewsDate(), 1)+".json").getPrev().keySet());
-			}
-			Map<String, Double> equalTerm = new HashMap<String, Double>();
-			for (TfidfVO tfidfVO : tfidfList) {
-				if (NewsMorpSet.contains(tfidfVO.getTerm()))
-					equalTerm.put(tfidfVO.getTerm(), tfidfVO.getTfidf());
-			}
-			for (ProDicVO prodic : proDicList) {
-				String key = (String) prodic.getTerm();
-				if (equalTerm.containsKey(key)) {
-					incScore += (prodic.getInc() * equalTerm.get(key) / 10);
-					decScore += (prodic.getDec() * equalTerm.get(key) / 10);
-					equScore += (prodic.getEqu() * equalTerm.get(key) / 10);
-				}
-			}
-			return predict(predicDate);
-		}else{
-			return "";
-		}
-	}
-	
-	
-	@Override
-	public String trainAnalyzeWithMongo(NewsMorpVO morpVO) {
 		incScore=0;
 		decScore=0;
 		equScore=0;
@@ -123,9 +80,54 @@ public class FilteredAnalysis implements Analysis{
 		}
 		
 	}
-
+	
 	@Override
-	public String analyze(MorpVO morpVO) {
+	public String realtimeAnalyze(FileMorpVO morpVO) {
+		incScore=0;
+		decScore=0;
+		equScore=0;
+		List<FileMorpVO> morpList = Tool.mergeVO(morpVO);
+		Set<String> NewsMorpSet = new HashSet<String>();
+		for (FileMorpVO morp : morpList) {
+			NewsMorpSet.addAll(morp.getBegin().keySet());
+			NewsMorpSet.addAll(morp.getPrev().keySet());
+			NewsMorpSet.addAll(new NewsMorpVO(
+					"D:\\PPT\\mining\\" + morp.getCategory() + Tool.getDate(morp.getNewsDate(), -1) + ".json")
+							.getAppend().keySet());
+		}
+		Map<String, Double> equalTerm = new HashMap<String, Double>();
+		Iterator<String> iter = NewsMorpSet.iterator();
+		while(iter.hasNext()){
+			String key = iter.next();
+			if(tfidfMap.containsKey(key))
+				equalTerm.put(key,tfidfMap.get(key));
+		}
+		for (int i = 0; i < prodicArr.size(); i++) {
+			JSONObject prodic = (JSONObject) prodicArr.get(i);
+			String key = (String) prodic.get("word");
+			if (equalTerm.containsKey(key)) {
+				incScore += (Double.parseDouble((String) prodic.get("inc")) * equalTerm.get(key) / 10);
+				decScore += (Double.parseDouble((String) prodic.get("dec")) * equalTerm.get(key) / 10);
+				equScore += (Double.parseDouble((String) prodic.get("equ")) * equalTerm.get(key) / 10);
+			}
+		}
+		String flucState="";
+		double total = incScore + decScore + equScore;
+		if(treeArr == null){
+			if (incScore > decScore )
+				flucState="p";
+			else if(incScore < decScore ) 
+				flucState="m";
+		}else{
+			Dtree dTree = new Dtree();
+			dTree.setDtree(treeArr);
+			flucState = dTree.getDecision(incScore / total, decScore / total, equScore / total);
+		}
+		return flucState;
+	}
+	
+	@Override
+	public String userReqAnalyze(MorpVO morpVO) {
 		incScore=0;
 		decScore=0;
 		equScore=0;
@@ -195,5 +197,11 @@ public class FilteredAnalysis implements Analysis{
 	public int getPredictCnt() {
 		return predictCnt;
 	}
+	
+	@Override
+	public void setTreeArr(JSONArray treeArr) {
+		this.treeArr = treeArr;
+	}
+
 
 }

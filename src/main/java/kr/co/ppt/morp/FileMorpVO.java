@@ -10,7 +10,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-public class NewsMorpVO {
+public class FileMorpVO {
 	private String category;
 	private String newsDate;
 	private Map<String, Integer> prev;
@@ -18,7 +18,7 @@ public class NewsMorpVO {
 	private Map<String, Integer> append;
 	
 	//FileReader을 이용한 객체생성
-	public NewsMorpVO(String fileName){
+	public FileMorpVO(String fileName){
 		try{
 			FileReader fr = new FileReader(fileName);
 			BufferedReader br = new BufferedReader(fr);

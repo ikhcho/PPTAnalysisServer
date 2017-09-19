@@ -11,13 +11,12 @@ import org.json.simple.JSONObject;
 
 import kr.co.ppt.R.Dtree;
 import kr.co.ppt.dictionary.ProDicVO;
+import kr.co.ppt.morp.FileMorpVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
 import kr.co.ppt.util.Tool;
 
 public class ProAnalysis implements Analysis{
-	//OracleDB
-	private List<ProDicVO> proDicList;
 	// MongoDB
 	private JSONArray prodicArr;
 	private JSONArray stockArr;
@@ -28,17 +27,11 @@ public class ProAnalysis implements Analysis{
 	private int success = 0;
 	private int predictCnt=0;
 	
-	public ProAnalysis(List<ProDicVO> proDicList, JSONArray stockArr) {
-		this.proDicList = proDicList;
-		this.stockArr = stockArr;
+	public ProAnalysis(JSONArray prodicArr) {
+		this.prodicArr = prodicArr;
 	}
 	
 	public ProAnalysis(JSONArray prodicArr, JSONArray stockArr) {
-		this.prodicArr = prodicArr;
-		this.stockArr = stockArr;
-	}
-	
-	public ProAnalysis(JSONArray prodicArr, JSONArray stockArr, JSONArray treeArr) {
 		this.prodicArr = prodicArr;
 		this.stockArr = stockArr;
 		this.treeArr = treeArr;
@@ -46,39 +39,6 @@ public class ProAnalysis implements Analysis{
 
 	@Override
 	public String trainAnalyze(NewsMorpVO morpVO) {
-		incScore=0;
-		decScore=0;
-		equScore=0;
-		String predicDate = Tool.getDate(morpVO.getNewsDate(), 1);
-		if(Tool.isOpen(predicDate)){
-			List<NewsMorpVO> morpList = Tool.mergeVO(morpVO);
-			Set<String> NewsMorpSet = new HashSet<String>();
-			for(NewsMorpVO morp: morpList){
-				NewsMorpSet.addAll(morp.getBegin().keySet());
-				NewsMorpSet.addAll(morp.getAppend().keySet());
-				NewsMorpSet.addAll(new NewsMorpVO("D:\\PPT\\mining\\"+morp.getCategory()+Tool.getDate(morp.getNewsDate(), 1)+".json").getPrev().keySet());
-			}
-			Iterator<String> iter = NewsMorpSet.iterator();
-
-			while (iter.hasNext()) {
-				String key = iter.next();
-				for (ProDicVO prodic : proDicList) {
-					if (prodic.getTerm().equals(key)) {
-						incScore += prodic.getInc();
-						decScore += prodic.getDec();
-						equScore += prodic.getEqu();
-						break;
-					}
-				}
-			}
-			return predict(predicDate);
-		}else{
-			return "";
-		}
-	}
-	
-	@Override
-	public String trainAnalyzeWithMongo(NewsMorpVO morpVO) {
 		incScore=0;
 		decScore=0;
 		equScore=0;
@@ -105,9 +65,50 @@ public class ProAnalysis implements Analysis{
 			return "";
 		}
 	}
+	
+	@Override
+	public String realtimeAnalyze(FileMorpVO morpVO) {
+		incScore=0;
+		decScore=0;
+		equScore=0;
+		String predicDate = Tool.getDate(morpVO.getNewsDate(), 1);
+		List<FileMorpVO> morpList = Tool.mergeVO(morpVO);
+		Set<String> NewsMorpSet = new HashSet<String>();
+		for (FileMorpVO morp : morpList) {
+			NewsMorpSet.addAll(morp.getBegin().keySet());
+			NewsMorpSet.addAll(morp.getPrev().keySet());
+			NewsMorpSet.addAll(new NewsMorpVO(
+					"D:\\PPT\\mining\\" + morp.getCategory() + Tool.getDate(morp.getNewsDate(), 1) + ".json")
+							.getAppend().keySet());
+		}
+		for (int i = 0; i < prodicArr.size(); i++) {
+			JSONObject prodic = (JSONObject) prodicArr.get(i);
+			String key = (String) prodic.get("word");
+			if (NewsMorpSet.contains(key)) {
+				incScore += Double.parseDouble((String) prodic.get("inc"));
+				decScore += Double.parseDouble((String) prodic.get("dec"));
+				equScore += Double.parseDouble((String) prodic.get("equ"));
+			}
+		}
+		String flucState="";
+		double total = incScore + decScore + equScore;
+		if(treeArr == null){
+			if (incScore > decScore)
+				flucState = "p";
+			else if(incScore < decScore)
+				flucState = "m";
+		}else{
+			Dtree dTree = new Dtree();
+			dTree.setDtree(treeArr);
+			flucState = dTree.getDecision(incScore / total, decScore / total, equScore / total);
+		}
+		return flucState;
+	}
+	
+	
 
 	@Override
-	public String analyze(MorpVO morpVO) {
+	public String userReqAnalyze(MorpVO morpVO) {
 		incScore=0;
 		decScore=0;
 		equScore=0;
@@ -123,12 +124,19 @@ public class ProAnalysis implements Analysis{
 				equScore += Double.parseDouble((String) prodic.get("equ"));
 			}
 		}
+		String flucState="";
 		double total = incScore + decScore + equScore;
-		String result = predicDate + " 예측 : " 
-				+ String.valueOf(incScore / total) 
-				+ "," + String.valueOf(decScore / total)
-				+ "," + String.valueOf(equScore / total);
-		return result;
+		if(treeArr == null){
+			if (incScore > decScore)
+				flucState = "p";
+			else if(incScore < decScore)
+				flucState = "m";
+		}else{
+			Dtree dTree = new Dtree();
+			dTree.setDtree(treeArr);
+			flucState = dTree.getDecision(incScore / total, decScore / total, equScore / total);
+		}
+		return flucState;
 	}
 	
 	@Override
@@ -171,5 +179,8 @@ public class ProAnalysis implements Analysis{
 	public int getPredictCnt() {
 		return predictCnt;
 	}
-
+	@Override
+	public void setTreeArr(JSONArray treeArr) {
+		this.treeArr = treeArr;
+	}
 }

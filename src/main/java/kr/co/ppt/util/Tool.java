@@ -21,6 +21,7 @@ import org.json.simple.parser.JSONParser;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import kr.co.ppt.morp.FileMorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
 import kr.co.ppt.stock.StockVO;
 
@@ -302,6 +303,17 @@ public class Tool {
 		morpList.add(morpVO);
 		if(!isOpen(newsDate) && isOpen(predicDate)){
 			morpList.addAll(mergeVO(new NewsMorpVO("D:\\PPT\\mining\\"+morpVO.getCategory()+getDate(morpVO.getNewsDate(), -1)+".json")));// 전날 MorpVO
+		}
+		return morpList;
+	}
+	
+	public static List<FileMorpVO> mergeVO(FileMorpVO morpVO){
+		List<FileMorpVO> morpList = new ArrayList<FileMorpVO>();
+		String newsDate = morpVO.getNewsDate();
+		String predicDate = getDate(morpVO.getNewsDate(), -1);
+		morpList.add(morpVO);
+		if(!isOpen(newsDate) && isOpen(predicDate)){
+			morpList.addAll(mergeVO(new FileMorpVO("D:\\PPT\\mining\\"+morpVO.getCategory()+getDate(morpVO.getNewsDate(), -1)+".json")));// 전날 MorpVO
 		}
 		return morpList;
 	}

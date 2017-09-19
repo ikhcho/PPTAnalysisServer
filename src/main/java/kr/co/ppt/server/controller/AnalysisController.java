@@ -35,6 +35,8 @@ public class AnalysisController {
 	@RequestMapping("/trainAnalyze.do")
 	@ResponseBody
 	public String trainAnalyze(String comName, String newsCode, String function, String from, String to){
+		aService.fit = dService.selectTFIDFMongo("economic", 3.9, 6.1);
+		aService.meg = dService.selectTFIDFMongo("economic", 4.1, 6.5);
 		System.out.println(comName+"의 주가 예측 요청");
 		String[] dateRange = Tool.dateRange(from, to);
 		return aService.trainAnalyze(comName,newsCode,function,dateRange);
