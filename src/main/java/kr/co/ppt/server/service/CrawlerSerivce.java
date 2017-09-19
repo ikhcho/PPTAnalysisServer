@@ -49,7 +49,7 @@ public class CrawlerSerivce {
 			recentNews.put(newsCode, (String) cDAO.selectLastNews(query).get("link"));
 		}
 		System.out.println(recentNews.toString());
-	/*
+	
 		while(newsCodeIter.hasNext()){
 			String newsCode = newsCodeIter.next();
 			//daum news page document
@@ -101,7 +101,7 @@ public class CrawlerSerivce {
 			}
 		}
 		//
-*/	}
+	}
 	
 	public JSONArray recentNews(){
 		JSONArray arr = new JSONArray();
@@ -138,7 +138,7 @@ public class CrawlerSerivce {
 	
 	public JSONArray recentNews(String newsCode, int num){
 		JSONArray arr = new JSONArray();
-		String url = NewsCategoryVO.getTabMap().get(newsCode);
+		String url = newsCode.equals("main")?"http://media.daum.net/":NewsCategoryVO.getTabMap().get(newsCode);
 		try{
 			DaumNewsDom daum = new DaumNewsDom();
 			daum.setDom(Jsoup.connect(url).get());
