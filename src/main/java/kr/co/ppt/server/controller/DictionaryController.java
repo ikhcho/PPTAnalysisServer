@@ -1,5 +1,6 @@
 package kr.co.ppt.server.controller;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.bson.Document;
@@ -43,7 +44,19 @@ public class DictionaryController {
 	@RequestMapping("/mongo/selectOpiDic.do")
 	@ResponseBody
 	public String selectOpiDicMongo(String comName,String opinion, String newsCode){
-		return  dService.selectOpiDicMongo(comName, opinion, newsCode).toJSONString();
+		JSONObject obj = dService.selectOpiDicMongo(comName, opinion, newsCode);
+		Iterator iter = obj.keySet().iterator();
+		String result = "[";
+		while(iter.hasNext()){
+			String key = (String)iter.next();
+			result += "{\"key\":\"";
+			result += key;
+			result += "\",\"value\":";
+			result += obj.get(key)+"},";
+		}
+		result = result.substring(0, result.length()-1);
+		result += "]";
+		return result;
 	}
 	
 	@RequestMapping("/mongo/selectProDic.do")

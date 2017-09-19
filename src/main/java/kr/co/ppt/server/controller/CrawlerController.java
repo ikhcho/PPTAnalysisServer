@@ -4,10 +4,20 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Indexes;
 
 import kr.co.ppt.crawler.NewsCategoryVO;
 import kr.co.ppt.server.service.CrawlerSerivce;
@@ -23,6 +33,29 @@ public class CrawlerController {
 		Map<String,String> recentNews = new HashMap<>();
 		cService.craw();
 	}
+	
+	@RequestMapping("selectNews.do")
+	@ResponseBody
+	public String selectNews(){
+		MongoClient mongo = new MongoClient("222.106.22.63:30000");
+		MongoDatabase db = mongo.getDatabase("ppt");
+		MongoCollection<Document> collection = db.getCollection("news");
+		Bson index = Indexes.descending("newsCode","time","newsDate");
+		//collection.createIndex(index);
+		Bson query = Filters.and(Filters.eq("newsCode","economic"), Filters.eq("newsDate","20160104"));
+		MongoCursor<Document> cursor = collection.find(query).iterator();
+		String data = "";
+		for (Document i : collection.listIndexes()) {
+		    System.out.println(i.toJson());
+		}
+		while(cursor.hasNext()){
+			data += cursor.next().toJson();
+			//System.out.println(cursor.next().toJson());
+			break;
+		}
+		return data;
+	}
+	
 	
 	@RequestMapping("recentNews.do")
 	@ResponseBody

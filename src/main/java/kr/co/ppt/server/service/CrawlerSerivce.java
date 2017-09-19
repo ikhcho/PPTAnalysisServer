@@ -9,9 +9,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
 
 import kr.co.ppt.crawler.DaumNewsDom;
 import kr.co.ppt.crawler.NewsCategoryVO;
@@ -23,11 +32,24 @@ public class CrawlerSerivce {
 	@Autowired
 	CrawlerDAO cDAO;
 	
-	public static Map<String,String> recentNews = new HashMap<String,String>();
+	public static Map<String,String> recentNews = new HashMap<String,String>();//key=newsCode,value=href
 	
 	public void craw(){
 		Map<String, String> newsCodeMap = NewsCategoryVO.getTabMap();
 		Iterator<String> newsCodeIter = newsCodeMap.keySet().iterator();
+		
+		//last 뉴스 정보 가져오기
+		while(newsCodeIter.hasNext()){
+			String newsCode = newsCodeIter.next();
+			System.out.println(newsCode);
+			Bson query = Filters.and(Filters.eq("newsCode",newsCode));
+			String newsDate = (String)cDAO.selectLastNews(query).get("newsDate");
+			System.out.println(newsDate);
+			query = Filters.and(Filters.eq("newsCode",newsCode),Filters.eq("newsDate",newsDate));
+			recentNews.put(newsCode, (String) cDAO.selectLastNews(query).get("link"));
+		}
+		System.out.println(recentNews.toString());
+	/*
 		while(newsCodeIter.hasNext()){
 			String newsCode = newsCodeIter.next();
 			//daum news page document
@@ -44,14 +66,14 @@ public class CrawlerSerivce {
 					}else{
 						List<String> hrefList = daum.getHref();
 						for (String href : hrefList) {
+							if(recentNews.get(newsCode).equals(href)){
+								recentNews.replace(newsCode, href);//최근뉴스로 교체
+								break label;
+							}
 							try {
 								DaumNewsDom news = new DaumNewsDom();
 								news.setDom(Jsoup.connect(href).get());
 								content="";
-								if(news.getTitle().equals(recentNews.get(newsCode))){
-									recentNews.replace(newsCode, news.getTitle());//최근뉴스로 교체
-									break label;
-								}
 								//DB저장
 								if(news.getContent().equals("")){
 									continue;
@@ -79,12 +101,11 @@ public class CrawlerSerivce {
 			}
 		}
 		//
-	}
+*/	}
 	
 	public String recentNews(){
 		String result ="{[";
 		try{
-			
 			Map<String, String> newsCodeMap = NewsCategoryVO.getTabMap();
 			Iterator<String> newsCodeIter = newsCodeMap.keySet().iterator();
 			while(newsCodeIter.hasNext()){

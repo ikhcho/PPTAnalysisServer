@@ -10,7 +10,6 @@ public class NewsCategoryVO {
 	
 	public static Map<String,String> tabMap = new HashMap<String,String>();
 	static{
-		tabMap.put("main", "http://media.daum.net/");
 		tabMap.put("society", "http://media.daum.net/breakingnews/society");
 		tabMap.put("politics", "http://media.daum.net/breakingnews/politics");
 		tabMap.put("economic", "http://media.daum.net/breakingnews/economic");
