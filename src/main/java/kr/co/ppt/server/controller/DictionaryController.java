@@ -36,8 +36,8 @@ public class DictionaryController {
 	//=======================Connect to MongoDB================================//
 	@RequestMapping("/mongo/insertDictionary.do")
 	@ResponseBody
-	public String insertAllDictionary(String collectionName){
-		dService.insertAllDictionary(collectionName);
+	public String insertAllDictionary(String collectionName, String newsCode){
+		dService.insertAllDictionary(collectionName, newsCode);
 		return "";
 	}
 	

@@ -24,6 +24,7 @@ import com.mongodb.client.model.Filters;
 
 import kr.co.ppt.dictionary.OpiDicVO;
 import kr.co.ppt.dictionary.ProDicVO;
+import kr.co.ppt.dictionary.TFIDF;
 import kr.co.ppt.dictionary.TfidfVO;
 import kr.co.ppt.mongo.JSONReader;
 import kr.co.ppt.morp.NewsMorpVO;
@@ -41,7 +42,7 @@ public class DictionaryService {
 	StockService sService;
 	
 	//=======================Connect to MongoDB================================//
-	public void insertAllDictionary(String collectionName){
+	public void insertAllDictionary(String collectionName, String newsCode){
 		List<CompanyVO> list = sService.selectComList();
 		String[] path = new String[2];
 		int type = 0;
@@ -50,7 +51,7 @@ public class DictionaryService {
 				collectionName = "OPI_DIC";
 				type = JSONReader.OPI_DIC_JSON;
 				path = new String[4];
-				path[0] = "D:\\PPT\\opidic\\";
+				path[0] = "D:\\PPT\\opidic\\"+newsCode+"\\";
 				path[1] = "_pos.json";
 				path[2] = "_neg.json";
 				path[3] = "_neu.json";
@@ -58,13 +59,13 @@ public class DictionaryService {
 			case "pro":
 				collectionName = "PRO_DIC";
 				type = JSONReader.PRO_DIC_JSON;
-				path[0] = "D:\\PPT\\prodic\\";
+				path[0] = "D:\\PPT\\prodic\\"+newsCode+"\\";
 				path[1] = ".json";
 				break;
 			case "pro2":
 				collectionName = "PRO2_DIC";
 				type = JSONReader.PRO_DIC_JSON;
-				path[0] = "D:\\PPT\\prodic\\";
+				path[0] = "D:\\PPT\\prodic\\"+newsCode+"\\";
 				path[1] = "2.json";
 				break;
 		}
@@ -114,7 +115,30 @@ public class DictionaryService {
 	}
 	
 	public void insertTFIDF(String newsCode){
-		dDAO.insertTFIDF(selectTFIDF(newsCode), newsCode);
+		List<NewsMorpVO> morpList = new ArrayList<NewsMorpVO>();
+		String[] dateRange = Tool.dateRange("20160101","20170630");
+
+		for (int i = 0; i < dateRange.length; i++) {
+			NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\" + newsCode + dateRange[i] + ".json");
+			morpList.add(morpVO);
+		}
+		
+		TFIDF tfidf = new TFIDF(morpList);
+		tfidf.setTFIDF();
+		List<TfidfVO> list = new ArrayList<>();
+		for (int i = 0; i < tfidf.fList.size(); i++) {
+			TfidfVO tfidfVO = new TfidfVO();
+			tfidfVO.setTerm(tfidf.termList.get(i));
+			tfidfVO.setF(tfidf.fList.get(i));
+			tfidfVO.setTf(tfidf.tfList.get(i));
+			tfidfVO.setDf(tfidf.dfList.get(i));
+			tfidfVO.setIdf(tfidf.idfList.get(i));
+			tfidfVO.setTfidf(tfidf.tfidfList.get(i));
+			list.add(tfidfVO);
+			if (i % 10000 == 0)
+				System.out.println(i);
+		}
+		dDAO.insertTFIDF(list, newsCode);
 	}
 	
 	public Map<String,Double> selectTFIDFMongo(String newsCode, double from, double to){

@@ -30,6 +30,7 @@ public class StockDAO {
 	
 	public void insertStock(List<CompanyVO> list){
 		collection = jsonReader.DB.getCollection("STOCKS");
+		//collection.drop();
 		for(CompanyVO companyVO : list){
 			String path = "D:\\PPT\\stock\\" + companyVO.getName() + ".json";
 			try{

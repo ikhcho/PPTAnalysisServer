@@ -50,7 +50,7 @@ public class CrawlerSerivce {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		aService.realtimeAnalyze(today);
+		//aService.realtimeAnalyze(today);
 	}
 	
 	public JSONArray recentNews(){

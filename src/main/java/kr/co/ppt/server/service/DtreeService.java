@@ -40,6 +40,7 @@ public class DtreeService {
 				dTree.setDtree(comName, function);
 				dTree.getDtree();
 				dDAO.insertDtree(comName, newsCode, function, dTree.getDtree());
+				Thread.sleep(1000);
 			}catch(Exception e){
 				System.out.println(companyVO.getName());
 				errorCom+=companyVO.getName()+"\n";

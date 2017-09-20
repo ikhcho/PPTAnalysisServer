@@ -17,7 +17,6 @@ import kr.co.ppt.analysis.MergeAnalysis;
 import kr.co.ppt.analysis.OpiAnalysis;
 import kr.co.ppt.analysis.OpiAnalysis2;
 import kr.co.ppt.analysis.ProAnalysis;
-import kr.co.ppt.morp.FileMorpVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
 import kr.co.ppt.stock.CompanyVO;
@@ -36,7 +35,7 @@ public class AnalysisService {
 	public static Map<String,Double> fit = new HashMap<>();
 	public static Map<String,Double> meg = new HashMap<>();
 	
-	public String trainAnalyze(String comName, String newsCode, String function, String[] dateRange){
+	public String trainAnalyze(String comName, String newsCode, String function, String[] dateRange, boolean make){
 		long start = System.currentTimeMillis();
 		Analysis analysis = null;
 		JSONObject posJson = null;
@@ -99,14 +98,15 @@ public class AnalysisService {
 			if(!predict.equals(""))
 				csv.add(predict);
 		}
-		makeCSV(comName,function,csv);
+		if(make)
+			makeCSV(comName,function,csv);
 		long end = System.currentTimeMillis();
 		System.out.println("MongDB - " + function + "analysis 수행 시간 : "+(end-start)/1000 + "s");
 		
 		return String.valueOf(analysis.getSuccess()*100 / analysis.getPredictCnt());
 	}
 	
-	public JSONArray realtimeAnalyze(String today){
+	public JSONArray realtimeAnalyze(String predicDate, String newsCode){
 		JSONArray array = new JSONArray();
 		String[] functions = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
 		List<CompanyVO> list = sService.selectComList();
@@ -147,13 +147,18 @@ public class AnalysisService {
 				}
 				
 				analysis.setTreeArr(treeArr);
-				FileMorpVO morpVO = new FileMorpVO("D:\\PPT\\mining\\"+"economic"+today+".json");
-				map.put(function, analysis.realtimeAnalyze(morpVO));
+				NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+predicDate+".json");
+				map.put("comNo", String.valueOf(companyVO.getNo()));
+				map.put("comName", comName);
+				map.put("anaCode", function);
+				map.put("newsCode", newsCode);
+				map.put("todayFluc", analysis.todayAnalyze(morpVO));
+				map.put("tomorrowFluc", analysis.tomorrowAnalyze(morpVO));
+				JSONObject obj = new JSONObject(map);
+				array.add(obj);
+				System.out.println(obj.toJSONString());
 			}
-			map.put("comName", comName);
-			JSONObject obj = new JSONObject(map);
-			array.add(obj);
-			System.out.println(obj.toJSONString());
+			break;
 		}
 		return array;
 	}

@@ -41,6 +41,7 @@ public class DictionaryDAO {
 	
 	public void insertAllDictionary(String colName, List<CompanyVO> list, String[] path, int type){
 		collection = jsonReader.DB.getCollection(colName);
+		//collection.drop();
 		for(CompanyVO companyVO : list){
 			String comName = companyVO.getName();
 			try{

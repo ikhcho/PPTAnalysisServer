@@ -10,7 +10,6 @@ CREATE TABLE COMPANY
     CONSTRAINT COMPANY_PK PRIMARY KEY (no)
 )
 /
-
 CREATE SEQUENCE COMPANY_SEQ
 START WITH 1
 INCREMENT BY 1
@@ -71,6 +70,7 @@ INCREMENT BY 1
 NOCACHE;
 /
 
+
 -- MY_DICTIONARY Table Create SQL
 CREATE TABLE MY_DICTIONARY
 (
@@ -99,211 +99,6 @@ ALTER TABLE MY_DICTIONARY
     ADD CONSTRAINT FK_MY_DICTIONARY_com_no_COMPAN FOREIGN KEY (com_no)
         REFERENCES COMPANY (no)
 /
-
-
--- TFIDF Table Create SQL
-CREATE TABLE TFIDF
-(
-    no           NUMBER          NOT NULL, 
-    news_code    VARCHAR2(10)    NOT NULL, 
-    term         VARCHAR2(90)    NOT NULL, 
-    f            NUMBER          NOT NULL, 
-    tf           NUMBER          NOT NULL, 
-    df           NUMBER          NOT NULL, 
-    idf          NUMBER          NOT NULL, 
-    tfidf        NUMBER          NOT NULL, 
-    CONSTRAINT TFIDF_PK PRIMARY KEY (no)
-)
-
-/
-CREATE SEQUENCE TFIDF_SEQ
-START WITH 1
-INCREMENT BY 1
-NOCACHE;
-/
-
-ALTER TABLE TFIDF
-    ADD CONSTRAINT FK_TFIDF_news_code FOREIGN KEY (news_code)
-        REFERENCES NEWS_CATEGORY (code)
-/
-
-drop table pro2_DIC
-drop SEQUENCE pro2_DIC_SEQ
--- OPI_POS_DIC Table Create SQL
-CREATE TABLE OPI_POS_DIC
-(
-    no           NUMBER          NOT NULL, 
-    com_no       NUMBER          NOT NULL, 
-    news_code    VARCHAR2(10)    NOT NULL, 
-    term         VARCHAR2(90)    NOT NULL, 
-    weight       NUMBER          NOT NULL, 
-    CONSTRAINT OPI_POS_DIC_PK PRIMARY KEY (no)
-)
-/
-CREATE SEQUENCE OPI_POS_DIC_SEQ
-START WITH 1
-INCREMENT BY 1
-NOCACHE;
-/
-/
-
-ALTER TABLE OPI_POS_DIC
-    ADD CONSTRAINT FK_OPI_POS_DIC_com_no_COMPANY_ FOREIGN KEY (com_no)
-        REFERENCES COMPANY (no)
-/
-
-ALTER TABLE OPI_POS_DIC
-    ADD CONSTRAINT FK_OPI_POS_DIC_news_code_NEWS_ FOREIGN KEY (news_code)
-        REFERENCES NEWS_CATEGORY (code)
-/
-
-
--- OPI_NEG_DIC Table Create SQL
-CREATE TABLE OPI_NEG_DIC
-(
-    no           NUMBER          NOT NULL, 
-    com_no       NUMBER          NOT NULL, 
-    news_code    VARCHAR2(10)    NOT NULL, 
-    term         VARCHAR2(90)    NOT NULL, 
-    weight       NUMBER          NOT NULL, 
-    CONSTRAINT OPI_NEG_DIC_PK PRIMARY KEY (no)
-)
-/
-
-CREATE SEQUENCE OPI_NEG_DIC_SEQ
-START WITH 1
-INCREMENT BY 1
-NOCACHE;
-/
-
-ALTER TABLE OPI_NEG_DIC
-    ADD CONSTRAINT FK_OPI_NEG_DIC_com_no_COMPANY_ FOREIGN KEY (com_no)
-        REFERENCES COMPANY (no)
-/
-
-ALTER TABLE OPI_NEG_DIC
-    ADD CONSTRAINT FK_OPI_NEG_DIC_news_code_NEWS_ FOREIGN KEY (news_code)
-        REFERENCES NEWS_CATEGORY (code)
-/
-
-
--- OPI_NEU_DIC Table Create SQL
-CREATE TABLE OPI_NEU_DIC
-(
-    no           NUMBER          NOT NULL, 
-    com_no       NUMBER          NOT NULL, 
-    news_code    VARCHAR2(10)    NOT NULL, 
-    term         VARCHAR2(90)    NOT NULL, 
-    weight       NUMBER          NOT NULL, 
-    CONSTRAINT OPI_NEU_DIC_PK PRIMARY KEY (no)
-)
-/
-
-CREATE SEQUENCE OPI_NEU_DIC_SEQ
-START WITH 1
-INCREMENT BY 1
-NOCACHE;
-/
-
-ALTER TABLE OPI_NEU_DIC
-    ADD CONSTRAINT FK_OPI_NEU_DIC_com_no_COMPANY_ FOREIGN KEY (com_no)
-        REFERENCES COMPANY (no)
-/
-
-ALTER TABLE OPI_NEU_DIC
-    ADD CONSTRAINT FK_OPI_NEU_DIC_news_code_NEWS_ FOREIGN KEY (news_code)
-        REFERENCES NEWS_CATEGORY (code)
-/
-
-
--- PRO_DIC Table Create SQL
-CREATE TABLE PRO_DIC
-(
-    no           NUMBER          NOT NULL, 
-    com_no       NUMBER          NOT NULL, 
-    news_code    VARCHAR2(10)    NOT NULL, 
-    term         VARCHAR2(90)    NOT NULL, 
-    inc          NUMBER          NOT NULL, 
-    dec          NUMBER          NOT NULL, 
-    equ          NUMBER          NOT NULL, 
-    CONSTRAINT PRO_DIC_PK PRIMARY KEY (no)
-)
-/
-CREATE SEQUENCE PRO_DIC_SEQ
-START WITH 1
-INCREMENT BY 1
-NOCACHE;
-/
-
-ALTER TABLE PRO_DIC
-    ADD CONSTRAINT FK_PRO_DIC_com_no_COMPANY_no FOREIGN KEY (com_no)
-        REFERENCES COMPANY (no)
-/
-
-ALTER TABLE PRO_DIC
-    ADD CONSTRAINT FK_PRO_DIC_news_code_NEWS_CATE FOREIGN KEY (news_code)
-        REFERENCES NEWS_CATEGORY (code)
-/
-
-
--- PRO2_DIC Table Create SQL
-CREATE TABLE PRO2_DIC
-(
-    no           NUMBER          NOT NULL, 
-    com_no       NUMBER          NOT NULL, 
-    news_code    VARCHAR2(10)    NOT NULL, 
-    term         VARCHAR2(90)    NOT NULL, 
-    inc          NUMBER          NOT NULL, 
-    dec          NUMBER          NOT NULL, 
-    equ          NUMBER          NOT NULL, 
-    CONSTRAINT PRO2_DIC_PK PRIMARY KEY (no)
-)
-/
-
-CREATE SEQUENCE PRO2_DIC_SEQ
-START WITH 1
-INCREMENT BY 1
-NOCACHE;
-/
-
-ALTER TABLE PRO2_DIC
-    ADD CONSTRAINT FK_PRO2_DIC_com_no_COMPANY_no FOREIGN KEY (com_no)
-        REFERENCES COMPANY (no)
-/
-
-ALTER TABLE PRO2_DIC
-    ADD CONSTRAINT FK_PRO2_DIC_news_code_NEWS_CAT FOREIGN KEY (news_code)
-        REFERENCES NEWS_CATEGORY (code)
-/
-
--- STOCK Table Create SQL
-CREATE TABLE STOCK
-(
-    NO            NUMBER     NOT NULL, 
-    com_no        NUMBER     NOT NULL, 
-    open_date     DATE       NOT NULL, 
-    open_price          NUMBER     NOT NULL, 
-    close_price         NUMBER     NOT NULL, 
-    hig_priceh          NUMBER     NOT NULL, 
-    low_price           NUMBER     NOT NULL, 
-    volume        NUMBER     NOT NULL, 
-    fluc_state    CHAR(1)    NOT NULL, 
-    raise         NUMBER     NULL, 
-    rate          NUMBER     NULL, 
-    CONSTRAINT STOCK_PK PRIMARY KEY (NO)
-)
-/
-CREATE SEQUENCE STOCK_SEQ
-START WITH 1
-INCREMENT BY 1
-NOCACHE;
-/
-
-ALTER TABLE STOCK
-    ADD CONSTRAINT FK_STOCK_com_no_COMPANY_no FOREIGN KEY (com_no)
-        REFERENCES COMPANY (no)
-/
-
 
 -- MY_FAVORITE Table Create SQL
 CREATE TABLE MY_FAVORITE
@@ -390,7 +185,6 @@ ALTER TABLE RT_ANALISYS
         REFERENCES NEWS_CATEGORY (code)
 /
 
-
 -- MY_ANALISYS Table Create SQL
 CREATE TABLE MY_ANALISYS
 (
@@ -424,42 +218,6 @@ ALTER TABLE MY_ANALISYS
     ADD CONSTRAINT FK_MY_ANALISYS_ana_code_ANA_CA FOREIGN KEY (ana_code)
         REFERENCES ANA_CATEGORY (code)
 /
-
-
--- DECISION_TREE Table Create SQL
-CREATE TABLE DECISION_TREE
-(
-    NO           NUMBER           NOT NULL, 
-    com_no       NUMBER           NOT NULL, 
-    ana_code     VARCHAR2(4)      NOT NULL, 
-    news_code    VARCHAR2(10)     NOT NULL, 
-    decision     VARCHAR2(100)    NOT NULL, 
-    CONSTRAINT DECISION_TREE_PK PRIMARY KEY (NO)
-)
-/
-
-CREATE SEQUENCE DECISION_TREE_SEQ
-START WITH 1
-INCREMENT BY 1
-NOCACHE;
-/
-
-
-ALTER TABLE DECISION_TREE
-    ADD CONSTRAINT FK_DECISION_TREE_com_no_COMPAN FOREIGN KEY (com_no)
-        REFERENCES COMPANY (no)
-/
-
-ALTER TABLE DECISION_TREE
-    ADD CONSTRAINT FK_DECISION_TREE_ana_code_ANA_ FOREIGN KEY (ana_code)
-        REFERENCES ANA_CATEGORY (code)
-/
-
-ALTER TABLE DECISION_TREE
-    ADD CONSTRAINT FK_DECISION_TREE_news_code_NEW FOREIGN KEY (news_code)
-        REFERENCES NEWS_CATEGORY (code)
-/
-
 
 -- LINK Table Create SQL
 CREATE TABLE LINK
@@ -496,13 +254,21 @@ and term in('재건축','아파트','서울시','단지','뉴스','주민','추�
 (select term, tfidf from tfidf where news_code = 'economic' and 0 < IDF and IDF < 5)   tfidf
 where PRO_DIC.com_no = company.no and PRO_DIC.term = tfidf.term
 
-select * from company where name = '이노션'
-delete from company where no = '485'
+select * from company where name = 'SK하이닉스'
+delete from company where no = '2'
 delete from stock where com_no = '485'
+drop table stock
 drop table opi_pos_dic
 drop table opi_neg_dic
 drop table opi_neu_dic
 drop table pro2_dic
+
+insert into company
+values(company_seq.nextVal, '우리은행', '000030.ks', 'kospi')
+
+update company
+set name = '포스코'
+where no = 4
 DSR, GS, KPX케미칼, KT&G, STX, 깨끗한나라, 넥센, 대림비앤코, 대상, 대우조선해양, 대한해운, 더존비즈온, 동국실업, 두올, 롯데관광개발, 부산주공, 
 미래에셋생명보험, 삼성엔지니어링, 삼익THK, 서울도시가스, 성창기업지주, 세원정공, 신성통상, 신세계, 신흥, 아이에스동서,
 에스제이엠홀딩스, 오리온, 우성사료, 유안타증권, 이노션, 윌비스, 제일약품, 제주항공, 지투알, 종근당홀딩스, 중국원양자원유한공사, 

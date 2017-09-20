@@ -11,7 +11,6 @@ import org.json.simple.JSONObject;
 
 import kr.co.ppt.R.Dtree;
 import kr.co.ppt.dictionary.OpiDicVO;
-import kr.co.ppt.morp.FileMorpVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
 import kr.co.ppt.util.Tool;
@@ -39,6 +38,15 @@ public class OpiAnalysis2 implements Analysis{
 		this.stockArr = stockArr;
 		this.treeArr = treeArr;
 	}
+	private void analyze(Iterator<String> iter){
+		while (iter.hasNext()) {
+			String key = iter.next();
+			if(posJson.containsKey(key))
+				posScore += Float.parseFloat((String)posJson.get(key));
+			else if(negJson.containsKey(key))
+				negScore += Float.parseFloat((String)negJson.get(key));
+		}
+	}
 	
 	@Override
 	public String trainAnalyze(NewsMorpVO morpVO) {
@@ -47,7 +55,7 @@ public class OpiAnalysis2 implements Analysis{
 		String predicDate = Tool.getDate(morpVO.getNewsDate(), 1);
 		if(Tool.isOpen(predicDate)){
 			//공휴일 및 주말과 같은 장이 시작되지 않은 날은 이전 자료를 가져온다.
-			List<NewsMorpVO> morpList = Tool.mergeVO(morpVO);
+			List<NewsMorpVO> morpList = Tool.mergeVO(morpVO,1,true);
 			Set<String> NewsMorpSet = new HashSet<String>();
 			for(NewsMorpVO morp: morpList){
 				//D+1예측은 D_begin+D_append + (D+1)_prev 
@@ -56,76 +64,78 @@ public class OpiAnalysis2 implements Analysis{
 				NewsMorpSet.addAll(new NewsMorpVO("D:\\PPT\\mining\\"+morp.getCategory()+Tool.getDate(morp.getNewsDate(), 1)+".json").getPrev().keySet());
 			}
 			Iterator<String> iter = NewsMorpSet.iterator();
-			while (iter.hasNext()) {
-				String key = iter.next();
-				if(posJson.containsKey(key))
-					posScore += Float.parseFloat((String)posJson.get(key));
-				else if(negJson.containsKey(key))
-					negScore += Float.parseFloat((String)negJson.get(key));
+			analyze(iter);
+			String flucState="";
+			for (int i = 0; i < stockArr.size(); i++) {
+				JSONObject stock = (JSONObject) stockArr.get(i);
+				if(stock.get("date").equals(predicDate)){
+					flucState = ((String)stock.get("raise")).substring(0,1);
+					break;
+				}
 			}
-			return predict(predicDate);
+			
+			double total = posScore + negScore;
+			if(flucState.equals(predict()))
+				success++;
+			predictCnt++;
+			
+			String result = String.valueOf(posScore/total) + "," + String.valueOf(negScore/total) + ","+flucState;
+			return result;
 		}else{
 			return "";
 		}
 	}
 	
 	@Override
-	public String realtimeAnalyze(FileMorpVO morpVO) {
+	public String todayAnalyze(NewsMorpVO morpVO) {
 		posScore=0;
 		negScore=0;
-		String predicDate = Tool.getDate(morpVO.getNewsDate(), 1);
 		// 공휴일 및 주말과 같은 장이 시작되지 않은 날은 이전 자료를 가져온다.
-		List<FileMorpVO> morpList = Tool.mergeVO(morpVO);
+		List<NewsMorpVO> morpList = Tool.mergeVO(morpVO,-1,false);
 		Set<String> NewsMorpSet = new HashSet<String>();
-		for (FileMorpVO morp : morpList) {
+		for (NewsMorpVO morp : morpList) {
 			// D+1예측은 D_begin+D_append + (D+1)_prev
 			NewsMorpSet.addAll(morp.getBegin().keySet());
 			NewsMorpSet.addAll(morp.getPrev().keySet());
 			NewsMorpSet.addAll(new NewsMorpVO(
-					"D:\\PPT\\mining\\" + morp.getCategory() + Tool.getDate(morp.getNewsDate(), -1) + ".json")
-							.getAppend().keySet());
+					"D:\\PPT\\mining\\" + morp.getCategory() + Tool.getDate(morp.getNewsDate(), -1) + ".json").getAppend()
+							.keySet());
 		}
 		Iterator<String> iter = NewsMorpSet.iterator();
-		while (iter.hasNext()) {
-			String key = iter.next();
-			if (posJson.containsKey(key))
-				posScore += Float.parseFloat((String) posJson.get(key));
-			else if (negJson.containsKey(key))
-				negScore += Float.parseFloat((String) negJson.get(key));
-		}
-		String flucState="";
-		double total = posScore + negScore;
+		analyze(iter);
 		
-		if(treeArr == null){
-			if (posScore > negScore)
-				flucState="p";
-			else if(posScore < negScore)
-				flucState="m";
-		}else{
-			Dtree dTree = new Dtree();
-			dTree.setDtree(treeArr);
-			flucState = dTree.getDecision(posScore / total, negScore / total, 0);
+		return predict();
+	}
+	@Override
+	public String tomorrowAnalyze(NewsMorpVO morpVO) {
+		posScore=0;
+		negScore=0;
+		Set<String> NewsMorpSet = new HashSet<String>();
+		NewsMorpSet.addAll(morpVO.getBegin().keySet());
+		if(NewsMorpSet.isEmpty()){
+			NewsMorpSet.addAll(morpVO.getPrev().keySet());
 		}
-		return flucState;
+		Iterator<String> iter = NewsMorpSet.iterator();
+		analyze(iter);
+		
+		return predict();
 	}
 	
 	@Override
 	public String userReqAnalyze(MorpVO morpVO) {
 		posScore=0;
 		negScore=0;
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-		String predicDate = Tool.getDate(sdf.format(new Date()), 1);
 		Iterator<String> iter = morpVO.getMorp().keySet().iterator();
-		while (iter.hasNext()) {
-			String key = iter.next();
-			if(posJson.containsKey(key))
-				posScore += Float.parseFloat((String)posJson.get(key));
-			else if(negJson.containsKey(key))
-				negScore += Float.parseFloat((String)negJson.get(key));
-		}
+		analyze(iter);
+		return predict();
+	}
+	
+	@Override
+	public String predict(){
 		String flucState="";
 		double total = posScore + negScore;
-		
+		if(total == 0)
+			return "x";
 		if(treeArr == null){
 			if (posScore > negScore)
 				flucState="p";
@@ -137,36 +147,6 @@ public class OpiAnalysis2 implements Analysis{
 			flucState = dTree.getDecision(posScore / total, negScore / total, 0);
 		}
 		return flucState;
-	}
-	
-	@Override
-	public String predict(String predicDate){
-		String flucState="";
-		for (int i = 0; i < stockArr.size(); i++) {
-			JSONObject stock = (JSONObject) stockArr.get(i);
-			if(stock.get("date").equals(predicDate)){
-				flucState = ((String)stock.get("raise")).substring(0,1);
-				break;
-			}
-		}
-		
-		double total = posScore + negScore;
-		
-		if(treeArr == null){
-			if ((posScore > negScore && flucState.equals("p")) || (posScore < negScore &&flucState.equals("m"))) {
-				success++;
-			}
-		}else{
-			Dtree dTree = new Dtree();
-			dTree.setDtree(treeArr);
-			if(flucState.equals(dTree.getDecision(posScore / total, negScore / total, 0)))
-				success++;
-		}
-		
-		predictCnt++;
-		
-		String result = String.valueOf(posScore/total) + "," + String.valueOf(negScore/total) + ","+flucState;
-		return result;
 	}
 	
 	@Override

@@ -39,7 +39,7 @@ public class AnalysisController {
 		aService.meg = dService.selectTFIDFMongo("economic", 4.1, 6.5);
 		System.out.println(comName+"의 주가 예측 요청");
 		String[] dateRange = Tool.dateRange(from, to);
-		return aService.trainAnalyze(comName,newsCode,function,dateRange);
+		return aService.trainAnalyze(comName,newsCode,function,dateRange,false);
 	}
 	
 	@RequestMapping("/compare.do")
@@ -47,7 +47,7 @@ public class AnalysisController {
 	public String compare(String comName, String newsCode, String function, String from, String to){
 		System.out.println(comName+"의 주가 예측 요청");
 		String[] dateRange = Tool.dateRange(from, to);
-		String result = aService.trainAnalyze(comName,newsCode,function,dateRange);
+		String result = aService.trainAnalyze(comName,newsCode,function,dateRange,false);
 		result += "<br/>";
 		result += aService.dTreeAnalyze(comName,newsCode,function,dateRange);
 		return result;
@@ -61,6 +61,14 @@ public class AnalysisController {
 		return  aService.analyze(morpVO, comName, newsCode, function);
 	}
 	
+	@RequestMapping("/realtimeAnalyze.do")
+	@ResponseBody
+	public String analyze(String predicDate, String newsCode){
+		aService.fit = dService.selectTFIDFMongo("economic", 3.9, 6.1);
+		aService.meg = dService.selectTFIDFMongo("economic", 4.1, 6.5);
+		return  aService.realtimeAnalyze(predicDate, newsCode).toJSONString();
+	}
+	
 	@RequestMapping("/makeCSV.do")
 	public String makeCSV(Model model){
 		aService.fit = dService.selectTFIDFMongo("economic", 3.9, 6.1);
@@ -71,10 +79,10 @@ public class AnalysisController {
 		List<String> list = new ArrayList<String>();
 		for(CompanyVO companyVO : sService.selectComList()){
 			try {
-					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,"fit1",dateRange));
-					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,"fit2",dateRange));
-					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,"meg1",dateRange2));
-					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,"meg2",dateRange2));
+					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,"fit1",dateRange,true));
+					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,"fit2",dateRange,true));
+					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,"meg1",dateRange2,true));
+					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,"meg2",dateRange2,true));
 			}catch(Exception e){
 				e.printStackTrace();
 				continue;
@@ -93,12 +101,12 @@ public class AnalysisController {
 		String from = "20170701";
 		String to = "20170911";
 		String[] dateRange = Tool.dateRange(from, to);
-		String[] functions = {"opi1","opi2","pro1","pro2"};
+		String[] functions = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
 		String path = "D:\\PPT\\analysis\\opi_pro.csv";
 		FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(path);
-			fos.write(("comName,opi1_before,opi2_before,pro1_before,pro2_before,opi1_after,opi2_after,pro1_after,pro2_after\n").getBytes("utf-8"));
+			fos.write(("comName,opi1_b,opi1_a,opi2_b,opi2_a,pro1_b,pro1_a,pro2_b,pro2_a,fit1_b,fit1_a,fit2_b,fit2_a,meg1_b,meg1_a,meg2_b,meg2_a\n").getBytes("utf-8"));
 			boolean go = false;
 			for(CompanyVO companyVO : sService.selectComList()){
 				try{
@@ -106,12 +114,12 @@ public class AnalysisController {
 						go=true;
 					//if(go){
 						fos.write((companyVO.getName()+",").getBytes("utf-8"));
-						for(int i=0; i<3; i++){
-							fos.write((aService.trainAnalyze(companyVO.getName(),newsCode,functions[i],dateRange)+",").getBytes("utf-8"));
+						for(int i=0; i<7; i++){
+							fos.write((aService.trainAnalyze(companyVO.getName(),newsCode,functions[i],dateRange,false)+",").getBytes("utf-8"));
 							fos.write((aService.dTreeAnalyze(companyVO.getName(),newsCode,functions[i],dateRange)+",").getBytes("utf-8"));
 						}
-						fos.write((aService.trainAnalyze(companyVO.getName(),newsCode,functions[3],dateRange)+",").getBytes("utf-8"));
-						fos.write((aService.dTreeAnalyze(companyVO.getName(),newsCode,functions[3],dateRange)+"\n").getBytes("utf-8"));
+						fos.write((aService.trainAnalyze(companyVO.getName(),newsCode,functions[7],dateRange,false)+",").getBytes("utf-8"));
+						fos.write((aService.dTreeAnalyze(companyVO.getName(),newsCode,functions[7],dateRange)+"\n").getBytes("utf-8"));
 						fos.flush();
 					//}
 				}catch(Exception e){
