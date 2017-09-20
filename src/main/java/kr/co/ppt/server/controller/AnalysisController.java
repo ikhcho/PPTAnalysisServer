@@ -97,6 +97,8 @@ public class AnalysisController {
 	
 	@RequestMapping("/test.do")
 	public String anal(Model model){
+		aService.fit = dService.selectTFIDFMongo("economic", 3.9, 6.1);
+		aService.meg = dService.selectTFIDFMongo("economic", 4.1, 6.5);
 		String newsCode = "economic";
 		String from = "20170701";
 		String to = "20170911";

@@ -172,65 +172,50 @@ public class AnalysisService {
 		Map<String,Double> tfidfMap = null;
 		JSONArray stockArr = sService.selectStock(comName);
 		JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, function);
-		List<String> csv = new ArrayList<String>();
 		switch(function){
 			case "opi1":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				analysis = new OpiAnalysis(posJson,negJson,stockArr);
-				csv.add("opi1Inc,opi1Dec,result");
 				break;
 			case "opi2":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				analysis = new OpiAnalysis2(posJson,negJson,stockArr);
-				csv.add("opi2Inc,opi2Dec,result");
 				break;
 			case "pro1":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
 				analysis = new ProAnalysis(prodicArr,stockArr);
-				csv.add("pro1Inc,pro1Dec,pro1Equ,result");
 				break;
 			case "pro2":
 				prodicArr = dService.selectPro2DicMongo(comName, newsCode);
 				analysis = new ProAnalysis(prodicArr,stockArr);
-				csv.add("pro2Inc,pro2Dec,pro1Equ,result");
 				break;
 			case "fit1":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				tfidfMap = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
-				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
-				csv.add("fit1Inc,fit1Dec,fit1Equ,result");
+				analysis = new FilteredAnalysis(prodicArr,stockArr,fit);
 				break;
 			case "fit2":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				tfidfMap = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
-				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
-				csv.add("fit2Inc,fit2Dec,fit2Equ,result");
+				analysis = new FilteredAnalysis(prodicArr,stockArr,fit);
 				break;
 			case "meg1":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				tfidfMap = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
-				csv.add("meg1Inc,meg1Dec,meg1Equ,result");
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,meg);
 				break;
 			case "meg2":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				tfidfMap = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
-				csv.add("meg2Inc,meg2Dec,meg2Equ,result");
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,meg);
 				break;
 		}
 		analysis.setTreeArr(treeArr);
 		for(String date : dateRange){
 			NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+date+".json");
 			String predict = analysis.trainAnalyze(morpVO);
-			if(!predict.equals(""))
-				csv.add(predict);
 		}
 		long end = System.currentTimeMillis();
 		System.out.println("MongDB - " + function + "analysis 수행 시간 : "+(end-start)/1000 + "s");
