@@ -283,6 +283,50 @@ public class AnalysisService {
 		return comName + "의 " + function+ "analysis 수행 시간 : "+(end-start)/1000 + "s" + " : " + analysis.userReqAnalyze(morpVO);
 	}
 	
+	public int getTfidfThreshold(String comName, String newsCode, String function, String[] dateRange, double from, double to){
+		long start = System.currentTimeMillis();
+		Analysis analysis = null;
+		JSONObject posJson = null;
+		JSONObject negJson = null;
+		JSONArray prodicArr = null;
+		Map<String,Double> tfidfMap = null;
+		JSONArray stockArr = sService.selectStock(comName);
+		switch(function){
+			case "fit1":
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
+				break;
+			case "fit2":
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
+				break;
+			case "meg1":
+				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
+				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
+				break;
+			case "meg2":
+				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
+				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
+				break;
+		}
+		
+		for(String date : dateRange){
+			NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+date+".json");
+			String predict = analysis.trainAnalyze(morpVO);
+		}
+		long end = System.currentTimeMillis();
+		System.out.println("MongDB - " + function + "analysis 수행 시간 : "+(end-start)/1000 + "s");
+		
+		return analysis.getSuccess()*100 / analysis.getPredictCnt();
+	}
 	public void makeCSV(String comName, String newsCode, String function, List<String> csv){
 		String path = "D:\\PPT\\analysis\\"+newsCode+"\\"+comName+"_"+function+".csv";
 		FileOutputStream fos;
