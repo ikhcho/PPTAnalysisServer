@@ -37,7 +37,7 @@ public class DtreeService {
 			try{
 				String comName = companyVO.getName();
 				Dtree dTree = new Dtree();
-				dTree.setDtree(comName, function);
+				dTree.setDtree(comName,newsCode, function);
 				dTree.getDtree();
 				dDAO.insertDtree(comName, newsCode, function, dTree.getDtree());
 				Thread.sleep(1000);
@@ -66,4 +66,27 @@ public class DtreeService {
 		return arr;
 	}
 	
+	public JSONArray updateDtree(String comName, String newsCode, String function){
+		Bson query = Filters.and(Filters.eq("comName",comName), Filters.eq("newsCode",newsCode), Filters.eq("function",function));
+		dDAO.deleteDtree(query);
+		try{
+			Dtree dTree = new Dtree();
+			dTree.setDtree(comName,newsCode, function);
+			dTree.getDtree();
+			dDAO.insertDtree(comName, newsCode, function, dTree.getDtree());
+			Thread.sleep(1000);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		String data = dDAO.selectDtree(query).toJson();
+		JSONParser parser = new JSONParser();
+		JSONArray arr = null;
+		try {
+			arr = (JSONArray)((JSONObject) parser.parse(data)).get("dTree");
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return arr;
+	}
 }

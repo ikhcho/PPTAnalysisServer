@@ -34,28 +34,6 @@ public class CrawlerController {
 		return "끝";
 	}
 	
-	@RequestMapping("selectNews.do")
-	@ResponseBody
-	public String selectNews(){
-		MongoClient mongo = new MongoClient("222.106.22.63:30000");
-		MongoDatabase db = mongo.getDatabase("ppt");
-		MongoCollection<Document> collection = db.getCollection("news");
-		Bson index = Indexes.descending("newsCode","time","newsDate");
-		//collection.createIndex(index);
-		Bson query = Filters.and(Filters.eq("newsCode","economic"), Filters.eq("newsDate","20160104"));
-		MongoCursor<Document> cursor = collection.find(query).iterator();
-		String data = "";
-		for (Document i : collection.listIndexes()) {
-		    System.out.println(i.toJson());
-		}
-		while(cursor.hasNext()){
-			data += cursor.next().toJson();
-			//System.out.println(cursor.next().toJson());
-			break;
-		}
-		return data;
-	}
-	
 	
 	@RequestMapping("recentNews.do")
 	@ResponseBody

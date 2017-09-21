@@ -19,6 +19,7 @@ import kr.co.ppt.analysis.OpiAnalysis2;
 import kr.co.ppt.analysis.ProAnalysis;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
+import kr.co.ppt.server.dao.AnalysisDAO;
 import kr.co.ppt.stock.CompanyVO;
 
 @Service
@@ -31,6 +32,9 @@ public class AnalysisService {
 	
 	@Autowired
 	DtreeService dTreeService;
+	
+	@Autowired
+	AnalysisDAO aDAO;
 	
 	public static Map<String,Double> fit = new HashMap<>();
 	public static Map<String,Double> meg = new HashMap<>();
@@ -99,7 +103,7 @@ public class AnalysisService {
 				csv.add(predict);
 		}
 		if(make)
-			makeCSV(comName,function,csv);
+			makeCSV(comName,newsCode,function,csv);
 		long end = System.currentTimeMillis();
 		System.out.println("MongDB - " + function + "analysis 수행 시간 : "+(end-start)/1000 + "s");
 		
@@ -158,7 +162,6 @@ public class AnalysisService {
 				array.add(obj);
 				System.out.println(obj.toJSONString());
 			}
-			break;
 		}
 		return array;
 	}
@@ -280,8 +283,8 @@ public class AnalysisService {
 		return comName + "의 " + function+ "analysis 수행 시간 : "+(end-start)/1000 + "s" + " : " + analysis.userReqAnalyze(morpVO);
 	}
 	
-	public void makeCSV(String comName, String function, List<String> csv){
-		String path = "D:\\PPT\\analysis\\"+comName+"_"+function+".csv";
+	public void makeCSV(String comName, String newsCode, String function, List<String> csv){
+		String path = "D:\\PPT\\analysis\\"+newsCode+"\\"+comName+"_"+function+".csv";
 		FileOutputStream fos;
 		try {
 			System.out.println("시작");
@@ -297,4 +300,31 @@ public class AnalysisService {
 		}
 	}
 	
+	public void insertRTA(JSONArray rtArr){
+		for(int i=0; i<rtArr.size(); i++){
+			JSONObject obj = (JSONObject)rtArr.get(i);
+			Map<Object,Object> map = new HashMap<>();
+			map.put("comNo", obj.get("comNo"));
+			map.put("comName", obj.get("comName"));
+			map.put("anaCode", obj.get("anaCode"));
+			map.put("newsCode", obj.get("newsCode"));
+			map.put("todayFluc", obj.get("todayFluc"));
+			map.put("tomorrowFluc", obj.get("tomorrowFluc"));
+			aDAO.insertRTA(map);
+		}
+	}
+	
+	public void updateRTA(JSONArray rtArr){
+		for(int i=0; i<rtArr.size(); i++){
+			JSONObject obj = (JSONObject)rtArr.get(i);
+			Map<Object,Object> map = new HashMap<>();
+			map.put("comNo", obj.get("comNo"));
+			map.put("comName", obj.get("comName"));
+			map.put("anaCode", obj.get("anaCode"));
+			map.put("newsCode", obj.get("newsCode"));
+			map.put("todayFluc", obj.get("todayFluc"));
+			map.put("tomorrowFluc", obj.get("tomorrowFluc"));
+			aDAO.updateRTA(map);
+		}
+	}
 }

@@ -25,13 +25,13 @@ public class Dtree {
 	private String[] splits = null;
 	private String[] yVal = null;
 	
-	public void setDtree(String comName,String function) throws Exception{
+	public void setDtree(String comName, String newsCode, String function) throws Exception{
 		connection = new RConnection();
 
 		// R스크립트가 있는 경로명을 입력
 		connection.eval("source('D:/PPT/R/dTree.R')");
 
-		String filePath = "'D:/PPT/analysis/" + comName + "_" + function + ".csv'";
+		String filePath = "'D:/PPT/analysis/" + newsCode + "/" + comName + "_" + function + ".csv'";
 		connection.eval("df <- read.csv(" + filePath + ")");
 		System.out.println("기업명 : " + comName + "_" + function);
 		// 의사결정트리 생성
@@ -141,7 +141,7 @@ public class Dtree {
 	
 	public String getDecision(double incScore, double decScore, double equScore){
 		int branch = 0;
-		System.out.println("현재 브랜치 : " + (branch+1));
+		//System.out.println("현재 브랜치 : " + (branch+1));
 		while(!tree.get(branch)[0].equals("leaf")){
 			if (tree.get(branch)[0].contains("Inc")) {
 				branch = compare(incScore, branch);
@@ -150,7 +150,7 @@ public class Dtree {
 			}else if(tree.get(branch)[0].contains("Equ")){
 				branch = compare(equScore, branch);
 			}
-			System.out.println("현재 브랜치 : " + (branch+1));
+			//System.out.println("현재 브랜치 : " + (branch+1));
 		}
 		return tree.get(branch)[2];
 	}

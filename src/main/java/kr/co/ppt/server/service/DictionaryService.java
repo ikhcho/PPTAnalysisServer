@@ -116,7 +116,7 @@ public class DictionaryService {
 	
 	public void insertTFIDF(String newsCode){
 		List<NewsMorpVO> morpList = new ArrayList<NewsMorpVO>();
-		String[] dateRange = Tool.dateRange("20160101","20170630");
+		String[] dateRange = Tool.dateRange("20160101","20161231");
 
 		for (int i = 0; i < dateRange.length; i++) {
 			NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\" + newsCode + dateRange[i] + ".json");

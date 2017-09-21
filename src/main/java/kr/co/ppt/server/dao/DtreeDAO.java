@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
 
 import kr.co.ppt.mongo.JSONReader;
 
@@ -35,5 +36,10 @@ public class DtreeDAO {
 	public Document selectDtree( Bson query){
 		collection = jsonReader.DB.getCollection("DTREE"); 
 		return collection.find(query).first();
+	}
+	
+	public void deleteDtree(Bson query){
+		collection = jsonReader.DB.getCollection("DTREE"); 
+		collection.deleteOne(query);
 	}
 }

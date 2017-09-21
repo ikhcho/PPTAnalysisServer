@@ -26,4 +26,10 @@ public class DtreeController {
 	public String selectDtree(String comName, String newsCode, String function){
 		return dService.selectDtree(comName, newsCode, function).toJSONString();
 	}
+	
+	@RequestMapping("/updateDtree.do")
+	@ResponseBody
+	public String updateDtree(String comName, String newsCode, String function){
+		return dService.updateDtree(comName,newsCode, function).toJSONString();
+	}
 }

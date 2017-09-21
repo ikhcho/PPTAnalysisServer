@@ -66,26 +66,26 @@ public class AnalysisController {
 	public String analyze(String predicDate, String newsCode){
 		aService.fit = dService.selectTFIDFMongo("economic", 3.9, 6.1);
 		aService.meg = dService.selectTFIDFMongo("economic", 4.1, 6.5);
-		return  aService.realtimeAnalyze(predicDate, newsCode).toJSONString();
+		aService.insertRTA(aService.realtimeAnalyze(predicDate, newsCode));
+		return  "끝";
 	}
 	
+	//훈련용 CSV만들기
 	@RequestMapping("/makeCSV.do")
-	public String makeCSV(Model model){
+	public String makeCSV(Model model, String newsCode){
 		aService.fit = dService.selectTFIDFMongo("economic", 3.9, 6.1);
 		aService.meg = dService.selectTFIDFMongo("economic", 4.1, 6.5);
-		String newsCode = "economic";
-		String[] dateRange = Tool.dateRange("20160101", "20170630");
-		String[] dateRange2 = Tool.dateRange("20170701", "20170911");
+		String[] functions = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
+		String[] dateRange = Tool.dateRange("20170101", "20170630");
 		List<String> list = new ArrayList<String>();
 		for(CompanyVO companyVO : sService.selectComList()){
-			try {
-					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,"fit1",dateRange,true));
-					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,"fit2",dateRange,true));
-					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,"meg1",dateRange2,true));
-					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,"meg2",dateRange2,true));
-			}catch(Exception e){
-				e.printStackTrace();
-				continue;
+			for(String function : functions){
+				try {
+					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,function,dateRange,true));
+				}catch(Exception e){
+					e.printStackTrace();
+					continue;
+				}
 			}
 			System.out.println(companyVO.getName() +" 종료");
 		}
@@ -94,17 +94,17 @@ public class AnalysisController {
 		return "trainAnalyze";
 	}
 	
-	
+	//예측 CSV결과 만들기 신뢰성 자료
 	@RequestMapping("/test.do")
 	public String anal(Model model){
 		aService.fit = dService.selectTFIDFMongo("economic", 3.9, 6.1);
 		aService.meg = dService.selectTFIDFMongo("economic", 4.1, 6.5);
 		String newsCode = "economic";
 		String from = "20170701";
-		String to = "20170911";
+		String to = "20170831";
 		String[] dateRange = Tool.dateRange(from, to);
 		String[] functions = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
-		String path = "D:\\PPT\\analysis\\opi_pro.csv";
+		String path = "D:\\PPT\\analysis\\responsibility.csv";
 		FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(path);

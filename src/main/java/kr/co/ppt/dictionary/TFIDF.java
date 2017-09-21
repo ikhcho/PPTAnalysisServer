@@ -22,7 +22,7 @@ public class TFIDF {
 	public List<Double> tfidfList = new ArrayList<>();	
 	
 	public TFIDF(String category){
-		String[] dateRange = Tool.dateRange("20160101","20170630");
+		String[] dateRange = Tool.dateRange("20160101","20161231");
 		for(int i=0; i<dateRange.length; i++){
 			NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+category+dateRange[i]+".json");
 			morpList.add(morpVO);

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="analysis">
+	<insert id="insertRTA" parameterType="java.util.Map">
+		insert into RT_ANALISYS(no, com_no, ana_code, news_code, today_fluc, tomorrow_fluc, reg_date) 
+		values(RT_ANALISYS_SEQ.nextVal, #{comNo}, #{anaCode}, #{newsCode}, #{todayFluc}, #{tomorrowFluc}, sysdate)
+	</insert>
+	
+	<update id="updateRTA" parameterType="java.util.Map">
+		update RT_ANALISYS
+		set today_fluc = #{todayFluc}, tomorrow_fluc = #{tomorrowFluc}, reg_date = sysdate
+		where com_no = #{comNo} and ana_code = #{anaCode} and news_code = #{newsCode}
+	</update>
+	<!-- 
+	<select id="selectRTA" resultType="companyVO">
+		select no, name, code, stock_type as stockType
+		from company
+		order by no
+	</select>
+ -->
+	
+</mapper>

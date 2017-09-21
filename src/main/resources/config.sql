@@ -156,7 +156,7 @@ ALTER TABLE MY_STOCK
         REFERENCES USERS (no)
 /
 
-
+drop TABLE RT_ANALISYS
 -- RT_ANALISYS Table Create SQL
 CREATE TABLE RT_ANALISYS
 (
@@ -165,7 +165,8 @@ CREATE TABLE RT_ANALISYS
     ana_code         VARCHAR2(4)     NOT NULL, 
     news_code        VARCHAR2(10)    NOT NULL, 
     today_fluc       CHAR(1)         NOT NULL, 
-    tomorrow_fluc    CHAR(1)         NOT NULL, 
+    tomorrow_fluc    CHAR(1)         NOT NULL,
+    reg_date		date			NOT NULL,
     CONSTRAINT RT_ANALISYS_PK PRIMARY KEY (no)
 )
 /
