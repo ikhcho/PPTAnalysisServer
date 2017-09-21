@@ -18,7 +18,7 @@ public class CrawlerThread extends Thread{
 	
 	public CrawlerThread(String url, String startDate, int period) {
 		super();
-		this.url = url;
+		this.url = url+"?";
 		this.startDate = startDate;
 		this.period = period;
 	}
@@ -114,6 +114,7 @@ public class CrawlerThread extends Thread{
 				}
 				TypeThread t1 = new TypeThread(category, dateRange[i], 1);
 				t1.start();
+				t1.join();
 			} catch (Exception e3) {
 				// TODO Auto-generated catch block
 				e3.printStackTrace();

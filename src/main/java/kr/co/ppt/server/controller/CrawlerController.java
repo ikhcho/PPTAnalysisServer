@@ -29,8 +29,8 @@ public class CrawlerController {
 	
 	@RequestMapping("batch.do")
 	@ResponseBody
-	public String batch(){
-		cService.batch();
+	public String batch(String newsCode){
+		cService.batch(newsCode);
 		return "끝";
 	}
 	

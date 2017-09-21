@@ -91,24 +91,26 @@ public class TypeThread extends Thread{
 				fr.close();
 				
 				//형태소 저장
-				KomoranThread prevThread = new KomoranThread(type+dateRange[i]+"_prev",prev);
-				KomoranThread beginThread = new KomoranThread(type+dateRange[i]+"_begin",begin);
-				KomoranThread appendThread = new KomoranThread(type+dateRange[i]+"_append",append);
-				prevThread.start();
-				prevThread.join();
-				beginThread.start();
-				beginThread.join();
-				appendThread.start();
-				appendThread.join();
+				if(begin.size()==0){
+					KomoranThread prevThread = new KomoranThread(type+dateRange[i]+"_prev",prev);
+					prevThread.start();
+					prevThread.join();
+				}
+				if(append.size()==0 && begin.size()!=0){
+					KomoranThread beginThread = new KomoranThread(type+dateRange[i]+"_begin",begin);
+					beginThread.start();
+					beginThread.join();
+				}
+				if(append.size()!=0){
+					KomoranThread appendThread = new KomoranThread(type+dateRange[i]+"_append",append);
+					appendThread.start();
+					appendThread.join();
+				}
 				
 				//File 통합
 				FileOutputStream fos = new FileOutputStream("D:\\PPT\\mining\\"+type+dateRange[i]+".json");
 				FileReader prevFr = new FileReader("D:\\PPT\\mining\\"+type+dateRange[i]+"_prev.json");
-				FileReader beginFr = new FileReader("D:\\PPT\\mining\\"+type+dateRange[i]+"_begin.json");
-				FileReader appendFr = new FileReader("D:\\PPT\\mining\\"+type+dateRange[i]+"_append.json");
 				BufferedReader prevBr = new BufferedReader(prevFr);
-				BufferedReader beginBr = new BufferedReader(beginFr);
-				BufferedReader appendBr = new BufferedReader(appendFr);
 				fos.write(("{\"category\" : \"" + type + "\"").getBytes("utf-8"));
 				fos.write((", \"newsDate\" : \"" + dateRange[i] + "\"").getBytes("utf-8"));
 				fos.write(", \"prev\" : [".getBytes("utf-8"));
@@ -119,20 +121,32 @@ public class TypeThread extends Thread{
 				fos.write("], \"begin\" : [".getBytes("utf-8"));
 				prevBr.close();
 				prevFr.close();
-				while((text = beginBr.readLine()) != null){
-					fos.write(text.getBytes("utf-8"));
-					fos.flush();
+				try{
+					FileReader beginFr = new FileReader("D:\\PPT\\mining\\"+type+dateRange[i]+"_begin.json");
+					BufferedReader beginBr = new BufferedReader(beginFr);
+					while((text = beginBr.readLine()) != null){
+						fos.write(text.getBytes("utf-8"));
+						fos.flush();
+					}
+					beginBr.close();
+					beginFr.close();
+				}catch(Exception e){
+					
 				}
 				fos.write("], \"append\" : [".getBytes("utf-8"));
-				beginBr.close();
-				beginFr.close();
-				while((text = appendBr.readLine()) != null){
-					fos.write(text.getBytes("utf-8"));
-					fos.flush();
+				try{
+					FileReader appendFr = new FileReader("D:\\PPT\\mining\\"+type+dateRange[i]+"_append.json");
+					BufferedReader appendBr = new BufferedReader(appendFr);
+					while((text = appendBr.readLine()) != null){
+						fos.write(text.getBytes("utf-8"));
+						fos.flush();
+					}
+					appendBr.close();
+					appendFr.close();
+				}catch(Exception e){
+					
 				}
 				fos.write("]}".getBytes("utf-8"));
-				appendBr.close();
-				appendFr.close();
 				fos.close();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block

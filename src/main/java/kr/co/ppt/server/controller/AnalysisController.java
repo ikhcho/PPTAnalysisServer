@@ -35,8 +35,8 @@ public class AnalysisController {
 	@RequestMapping("/trainAnalyze.do")
 	@ResponseBody
 	public String trainAnalyze(String comName, String newsCode, String function, String from, String to){
-		aService.fit = dService.selectTFIDFMongo("economic", 3.9, 6.1);
-		aService.meg = dService.selectTFIDFMongo("economic", 4.1, 6.5);
+		aService.fit = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
+		aService.meg = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
 		System.out.println(comName+"의 주가 예측 요청");
 		String[] dateRange = Tool.dateRange(from, to);
 		return aService.trainAnalyze(comName,newsCode,function,dateRange,false);
@@ -64,8 +64,8 @@ public class AnalysisController {
 	@RequestMapping("/realtimeAnalyze.do")
 	@ResponseBody
 	public String analyze(String predicDate, String newsCode){
-		aService.fit = dService.selectTFIDFMongo("economic", 3.9, 6.1);
-		aService.meg = dService.selectTFIDFMongo("economic", 4.1, 6.5);
+		aService.fit = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
+		aService.meg = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
 		aService.insertRTA(aService.realtimeAnalyze(predicDate, newsCode));
 		return  "끝";
 	}
@@ -73,8 +73,8 @@ public class AnalysisController {
 	//훈련용 CSV만들기
 	@RequestMapping("/makeCSV.do")
 	public String makeCSV(Model model, String newsCode){
-		aService.fit = dService.selectTFIDFMongo("economic", 3.9, 6.1);
-		aService.meg = dService.selectTFIDFMongo("economic", 4.1, 6.5);
+		aService.fit = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
+		aService.meg = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
 		String[] functions = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
 		String[] dateRange = Tool.dateRange("20170101", "20170630");
 		List<String> list = new ArrayList<String>();
@@ -96,10 +96,9 @@ public class AnalysisController {
 	
 	//예측 CSV결과 만들기 신뢰성 자료
 	@RequestMapping("/test.do")
-	public String anal(Model model){
-		aService.fit = dService.selectTFIDFMongo("economic", 3.9, 6.1);
-		aService.meg = dService.selectTFIDFMongo("economic", 4.1, 6.5);
-		String newsCode = "economic";
+	public String anal(Model model,String newsCode){
+		aService.fit = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
+		aService.meg = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
 		String from = "20170701";
 		String to = "20170831";
 		String[] dateRange = Tool.dateRange(from, to);

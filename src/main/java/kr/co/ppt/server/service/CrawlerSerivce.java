@@ -26,31 +26,21 @@ public class CrawlerSerivce {
 	@Autowired
 	AnalysisService aService;
 	
-	public void batch(){
+	public void batch(String newsCode){
 		NewsCategoryVO.getTabMap();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-		String today = sdf.format(new Date());
-		CrawlerThread economic = new CrawlerThread(NewsCategoryVO.getTabMap().get("economic"), today,1);
-		economic.start();
-		/*CrawlerThread society = new CrawlerThread(NewsCategoryVO.getTabMap().get("society"), today,1);
-		society.start();
-		CrawlerThread politics = new CrawlerThread(tabMap.get("정치"), today,1);
-		politics.start();
-		CrawlerThread foreign = new CrawlerThread(tabMap.get("국제"), today,1);
-		foreign.start();
-		CrawlerThread culture = new CrawlerThread(tabMap.get("문화"), today,1);
-		culture.start();
-		CrawlerThread entertain = new CrawlerThread(tabMap.get("연예"), today,1);
-		entertain.start();
-		CrawlerThread digital = new CrawlerThread(tabMap.get("IT"), today,1);
-		digital.start();*/
-		try {
-			economic.join();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		while(true){
+			String today = sdf.format(new Date());
+			CrawlerThread economic = new CrawlerThread(NewsCategoryVO.getTabMap().get(newsCode), today,1);
+			economic.start();
+			try {
+				economic.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			//aService.realtimeAnalyze(today);
 		}
-		//aService.realtimeAnalyze(today);
 	}
 	
 	public JSONArray recentNews(){
