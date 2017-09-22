@@ -47,8 +47,6 @@ public class AnalysisController {
 	@RequestMapping("/trainAnalyze.do")
 	@ResponseBody
 	public String trainAnalyze(String comName, String newsCode, String anaCode, String from, String to){
-		aService.fit = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
-		aService.meg = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
 		System.out.println(comName+"의 주가 예측 요청");
 		String[] dateRange = Tool.dateRange(from, to);
 		return aService.trainAnalyze(comName,newsCode,anaCode,dateRange,false);
@@ -201,8 +199,6 @@ public class AnalysisController {
 	//예측 CSV결과 만들기 신뢰성 자료
 	@RequestMapping("/test.do")
 	public String anal(Model model,String newsCode){
-		aService.fit = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
-		aService.meg = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
 		String from = "20170701";
 		String to = "20170831";
 		String[] dateRange = Tool.dateRange(from, to);

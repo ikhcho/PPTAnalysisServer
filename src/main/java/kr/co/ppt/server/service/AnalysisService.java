@@ -42,8 +42,6 @@ public class AnalysisService {
 	@Autowired
 	AnalysisDAO aDAO;
 	
-	public static Map<String,Double> fit = new HashMap<>();
-	public static Map<String,Double> meg = new HashMap<>();
 	public static Map<String,Map<String,String[]>> threshold = new HashMap<>();
 	private static final Resource RESOURCE = new ClassPathResource("/");
 	private static final String[] newsCodes = {"culture","digital"};
@@ -151,8 +149,6 @@ public class AnalysisService {
 			String predict = analysis.trainAnalyze(morpVO);
 			if(!predict.equals("")&&!predict.contains("NaN"))
 				csv.add(predict);
-			else
-				System.out.println(comName + "(" + anaCode + ")" + date + ":" + predict);
 		}
 		if(make)
 			makeCSV(comName,newsCode,anaCode,csv);
@@ -201,8 +197,8 @@ public class AnalysisService {
 						break;
 				}
 				
-				//JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
-				//analysis.setTreeArr(treeArr);
+				JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
+				analysis.setTreeArr(treeArr);
 				NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+predicDate+".json");
 				map.put("comNo", String.valueOf(companyVO.getNo()));
 				map.put("comName", comName);
@@ -225,7 +221,6 @@ public class AnalysisService {
 		JSONObject posJson = null;
 		JSONObject negJson = null;
 		JSONArray prodicArr = null;
-		Map<String,Double> tfidfMap = null;
 		JSONArray stockArr = sService.selectStock(comName);
 		JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
 		switch(anaCode){
@@ -249,23 +244,23 @@ public class AnalysisService {
 				break;
 			case "fit1":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new FilteredAnalysis(prodicArr,stockArr,fit);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
 				break;
 			case "fit2":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new FilteredAnalysis(prodicArr,stockArr,fit);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
 				break;
 			case "meg1":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,meg);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
 				break;
 			case "meg2":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,meg);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
 				break;
 		}
 		analysis.setTreeArr(treeArr);

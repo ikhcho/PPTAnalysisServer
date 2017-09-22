@@ -34,8 +34,7 @@ public class Dtree {
 		String filePath = "'D:/PPT/analysis/" + newsCode + "/" + comName + "_" + function + ".csv'";
 		connection.eval("df <- read.csv(" + filePath + ")");
 		System.out.println("기업명 : " + comName + "_" + function);
-		// 의사결정트리 생성
-		connection.eval("data1 <- dTree(df)");
+		
 		// dTree 정의
 		connection.eval("set.seed(1000)");
 		connection.eval("intrain<-createDataPartition(y=df$result, p=0.8, list=FALSE)");
@@ -43,19 +42,24 @@ public class Dtree {
 		connection.eval("test<-df[-intrain, ]");
 		connection.eval("treemod<-tree(result~. , data=train)");
 
+		// 의사결정트리 생성
+		connection.eval("data1 <- dTree(df)");
+		
 		// 트리의 leaf의 최적 개수를 구함
-		connection.eval("cv.trees<-cv.tree(treemod, FUN=prune.misclass )");
-		connection.eval("bValue <- cv.trees$size[which.min(cv.trees$dev)]");
-		bestSize = connection.eval("getBest(dTree(df))").asInteger();
+		//connection.eval("cv.trees<-cv.tree(treemod, FUN=prune.misclass )");
+		//connection.eval("bValue <- cv.trees$size[which.min(cv.trees$dev)]");
+		//bestSize = connection.eval("getBest(dTree(df))").asInteger();
 
 		// result 정의
-		connection.eval("prune.trees <- prune.misclass(dTree(df), best=getBest(dTree(df)))");
+		//connection.eval("prune.trees <- prune.misclass(dTree(df), best=getBest(dTree(df)))");
 
-		var = connection.eval("getVar(prune.trees$frame)").asStrings();
-		splits = connection.eval("getSplits(prune.trees$frame)").asStrings();
-		yVal = connection.eval("getYval(prune.trees$frame)").asStrings();
+		var = connection.eval("getVar(data1$frame)").asStrings();
+		splits = connection.eval("getSplits(data1$frame)").asStrings();
+		yVal = connection.eval("getYval(data1$frame)").asStrings();
 		connection.close();
+		bestSize = yVal.length/2+1;
 		makeTree();
+		printList();
 	}
 	
 	public void setDtree(JSONArray jsonArr){
