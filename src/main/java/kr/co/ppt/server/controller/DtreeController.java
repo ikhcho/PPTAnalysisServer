@@ -16,20 +16,20 @@ public class DtreeController {
 	
 	@RequestMapping("/insertDtree.do")
 	@ResponseBody
-	public String insertDtree(String newsCode, String function){
-		dService.insertDtree(newsCode, function);
+	public String insertDtree(String newsCode, String anaCode){
+		dService.insertDtree(newsCode, anaCode);
 		return "";
 	}
 	
 	@RequestMapping("/selectDtree.do")
 	@ResponseBody
-	public String selectDtree(String comName, String newsCode, String function){
-		return dService.selectDtree(comName, newsCode, function).toJSONString();
+	public String selectDtree(String comName, String newsCode, String anaCode){
+		return dService.selectDtree(comName, newsCode, anaCode).toJSONString();
 	}
 	
 	@RequestMapping("/updateDtree.do")
 	@ResponseBody
-	public String updateDtree(String comName, String newsCode, String function){
-		return dService.updateDtree(comName,newsCode, function).toJSONString();
+	public String updateDtree(String comName, String newsCode, String anaCode){
+		return dService.updateDtree(comName,newsCode, anaCode).toJSONString();
 	}
 }

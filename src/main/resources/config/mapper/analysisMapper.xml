@@ -14,12 +14,16 @@
 		set today_fluc = #{todayFluc}, tomorrow_fluc = #{tomorrowFluc}, reg_date = sysdate
 		where com_no = #{comNo} and ana_code = #{anaCode} and news_code = #{newsCode}
 	</update>
-	<!-- 
-	<select id="selectRTA" resultType="companyVO">
-		select no, name, code, stock_type as stockType
-		from company
-		order by no
-	</select>
- -->
 	
+	<select id="selectOneRTA" parameterType="String" resultType="rtaVO">
+		select RT_ANALISYS.no, company.name as comName, ana_code as anaCode, news_code as newsCode, today_fluc as todayFluc, tomorrow_fluc as tomorrowFluc, reg_date as regDate
+		from RT_ANALISYS, company
+		where RT_ANALISYS.com_no = company.no and company.name = #{comName}
+	</select>
+
+	<select id="selectAllRTA" resultType="rtaVO">
+		select RT_ANALISYS.no, company.name as comName, ana_code as anaCode, news_code as newsCode, today_fluc as todayFluc, tomorrow_fluc as tomorrowFluc, reg_date as regDate
+		from RT_ANALISYS, company
+		where RT_ANALISYS.com_no = company.no
+	</select>
 </mapper>

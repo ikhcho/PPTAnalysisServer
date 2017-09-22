@@ -32,40 +32,50 @@ public class AnalysisController {
 	@Autowired
 	DictionaryService dService;
 	
+	@RequestMapping("/RTA.do")
+	@ResponseBody
+	public String getRTA(String comName, String newsCode, String callback){
+		if(comName != null){
+			if(callback == null)
+				return aService.selectOneRTA(comName).toJSONString();
+			else
+				return  callback+"("+aService.selectOneRTA(comName).toJSONString()+")";
+		}
+		return aService.selectAllRTA().toJSONString();
+	}
+	
 	@RequestMapping("/trainAnalyze.do")
 	@ResponseBody
-	public String trainAnalyze(String comName, String newsCode, String function, String from, String to){
+	public String trainAnalyze(String comName, String newsCode, String anaCode, String from, String to){
 		aService.fit = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
 		aService.meg = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
 		System.out.println(comName+"의 주가 예측 요청");
 		String[] dateRange = Tool.dateRange(from, to);
-		return aService.trainAnalyze(comName,newsCode,function,dateRange,false);
+		return aService.trainAnalyze(comName,newsCode,anaCode,dateRange,false);
 	}
 	
 	@RequestMapping("/compare.do")
 	@ResponseBody
-	public String compare(String comName, String newsCode, String function, String from, String to){
+	public String compare(String comName, String newsCode, String anaCode, String from, String to){
 		System.out.println(comName+"의 주가 예측 요청");
 		String[] dateRange = Tool.dateRange(from, to);
-		String result = aService.trainAnalyze(comName,newsCode,function,dateRange,false);
+		String result = aService.trainAnalyze(comName,newsCode,anaCode,dateRange,false);
 		result += "<br/>";
-		result += aService.dTreeAnalyze(comName,newsCode,function,dateRange);
+		result += aService.dTreeAnalyze(comName,newsCode,anaCode,dateRange);
 		return result;
 	}
 	
 	@RequestMapping("/analyze.do")
 	@ResponseBody
-	public String analyze(String url, String comName, String newsCode, String function){
+	public String analyze(String url, String comName, String newsCode, String anaCode){
 		System.out.println(comName+"의 주가 예측 요청");
 		MorpVO morpVO = mService.getNewsMorp3(url);
-		return  aService.analyze(morpVO, comName, newsCode, function);
+		return  aService.analyze(morpVO, comName, newsCode, anaCode);
 	}
 	
 	@RequestMapping("/realtimeAnalyze.do")
 	@ResponseBody
 	public String analyze(String predicDate, String newsCode){
-		aService.fit = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
-		aService.meg = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
 		aService.insertRTA(aService.realtimeAnalyze(predicDate, newsCode));
 		return  "끝";
 	}
@@ -167,15 +177,15 @@ public class AnalysisController {
 	//훈련용 CSV만들기
 	@RequestMapping("/makeCSV.do")
 	public String makeCSV(Model model, String newsCode){
-		aService.fit = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
-		aService.meg = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
-		String[] functions = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
+		//aService.fit = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
+		//aService.meg = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
+		String[] anaCodes = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
 		String[] dateRange = Tool.dateRange("20170101", "20170630");
 		List<String> list = new ArrayList<String>();
 		for(CompanyVO companyVO : sService.selectComList()){
-			for(String function : functions){
+			for(String anaCode : anaCodes){
 				try {
-					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,function,dateRange,true));
+					list.add(aService.trainAnalyze(companyVO.getName(),newsCode,anaCode,dateRange,true));
 				}catch(Exception e){
 					e.printStackTrace();
 					continue;
@@ -196,7 +206,7 @@ public class AnalysisController {
 		String from = "20170701";
 		String to = "20170831";
 		String[] dateRange = Tool.dateRange(from, to);
-		String[] functions = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
+		String[] anaCodes = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
 		String path = "D:\\PPT\\analysis\\"+newsCode+"_responsibility.csv";
 		FileOutputStream fos;
 		try {
@@ -210,11 +220,11 @@ public class AnalysisController {
 					//if(go){
 						fos.write((companyVO.getName()+",").getBytes("utf-8"));
 						for(int i=0; i<7; i++){
-							fos.write((aService.trainAnalyze(companyVO.getName(),newsCode,functions[i],dateRange,false)+",").getBytes("utf-8"));
-							fos.write((aService.dTreeAnalyze(companyVO.getName(),newsCode,functions[i],dateRange)+",").getBytes("utf-8"));
+							fos.write((aService.trainAnalyze(companyVO.getName(),newsCode,anaCodes[i],dateRange,false)+",").getBytes("utf-8"));
+							fos.write((aService.dTreeAnalyze(companyVO.getName(),newsCode,anaCodes[i],dateRange)+",").getBytes("utf-8"));
 						}
-						fos.write((aService.trainAnalyze(companyVO.getName(),newsCode,functions[7],dateRange,false)+",").getBytes("utf-8"));
-						fos.write((aService.dTreeAnalyze(companyVO.getName(),newsCode,functions[7],dateRange)+"\n").getBytes("utf-8"));
+						fos.write((aService.trainAnalyze(companyVO.getName(),newsCode,anaCodes[7],dateRange,false)+",").getBytes("utf-8"));
+						fos.write((aService.dTreeAnalyze(companyVO.getName(),newsCode,anaCodes[7],dateRange)+"\n").getBytes("utf-8"));
 						fos.flush();
 					//}
 				}catch(Exception e){

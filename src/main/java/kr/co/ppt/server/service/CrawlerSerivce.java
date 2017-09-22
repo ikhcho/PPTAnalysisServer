@@ -3,9 +3,11 @@ package kr.co.ppt.server.service;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -83,15 +85,24 @@ public class CrawlerSerivce {
 			DaumNewsDom daum = new DaumNewsDom();
 			daum.setDom(Jsoup.connect(url).get());
 			List<String> hrefList = newsCode.equals("main")?daum.getHeadHref():daum.getHref();
-			for(int i=0; i<num; i++){
+			Set<String> titleSet = new HashSet<>();
+			for(int i=0; i<hrefList.size(); i++){
 				DaumNewsDom news = new DaumNewsDom();
 				news.setDom(Jsoup.connect(hrefList.get(i)).get());
 				Map<String,String> map = new HashMap<>();
-				map.put("newsCode", newsCode);
-				map.put("title", news.getTitle());
-				map.put("link", hrefList.get(i));
-				JSONObject obj = new JSONObject(map);
-				arr.add(obj);
+				if(titleSet.isEmpty()){
+					titleSet.add(news.getTitle());
+				}else if(titleSet.contains(news.getTitle())){
+					continue;
+				}else{
+					map.put("newsCode", newsCode);
+					map.put("title", news.getTitle());
+					map.put("link", hrefList.get(i));
+					JSONObject obj = new JSONObject(map);
+					arr.add(obj);
+				}
+				if(arr.size() == num)
+					break;
 			}
 		}catch(Exception e){
 			e.printStackTrace();

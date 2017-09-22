@@ -9,5 +9,6 @@
 		<typeAlias alias="tfidfVO" type="kr.co.ppt.dictionary.TfidfVO" />
 		<typeAlias alias="opiDicVO" type="kr.co.ppt.dictionary.OpiDicVO" />
 		<typeAlias alias="proDicVO" type="kr.co.ppt.dictionary.ProDicVO" />
+		<typeAlias alias="rtaVO" type="kr.co.ppt.analysis.RTAVO" />
 	</typeAliases>
 </configuration>

@@ -27,7 +27,7 @@ public class DtreeService {
 	@Autowired
 	StockService sService;
 	
-	public void insertDtree(String newsCode, String function){
+	public void insertDtree(String newsCode, String anaCode){
 		JSONReader jsonReader = new JSONReader();
 		MongoCollection<Document> collection = jsonReader.DB.getCollection("DTREE");
 		//collection.drop();
@@ -37,9 +37,9 @@ public class DtreeService {
 			try{
 				String comName = companyVO.getName();
 				Dtree dTree = new Dtree();
-				dTree.setDtree(comName,newsCode, function);
+				dTree.setDtree(comName,newsCode, anaCode);
 				dTree.getDtree();
-				dDAO.insertDtree(comName, newsCode, function, dTree.getDtree());
+				dDAO.insertDtree(comName, newsCode, anaCode, dTree.getDtree());
 				Thread.sleep(1000);
 			}catch(Exception e){
 				System.out.println(companyVO.getName());
@@ -52,8 +52,8 @@ public class DtreeService {
 		System.out.println(errorCom);
 	}
 	
-	public JSONArray selectDtree(String comName, String newsCode, String function){
-		Bson query = Filters.and(Filters.eq("comName",comName), Filters.eq("newsCode",newsCode), Filters.eq("function",function));
+	public JSONArray selectDtree(String comName, String newsCode, String anaCode){
+		Bson query = Filters.and(Filters.eq("comName",comName), Filters.eq("newsCode",newsCode), Filters.eq("anaCode",anaCode));
 		String data = dDAO.selectDtree(query).toJson();
 		JSONParser parser = new JSONParser();
 		JSONArray arr = null;
@@ -66,14 +66,14 @@ public class DtreeService {
 		return arr;
 	}
 	
-	public JSONArray updateDtree(String comName, String newsCode, String function){
-		Bson query = Filters.and(Filters.eq("comName",comName), Filters.eq("newsCode",newsCode), Filters.eq("function",function));
+	public JSONArray updateDtree(String comName, String newsCode, String anaCode){
+		Bson query = Filters.and(Filters.eq("comName",comName), Filters.eq("newsCode",newsCode), Filters.eq("anaCode",anaCode));
 		dDAO.deleteDtree(query);
 		try{
 			Dtree dTree = new Dtree();
-			dTree.setDtree(comName,newsCode, function);
+			dTree.setDtree(comName,newsCode, anaCode);
 			dTree.getDtree();
-			dDAO.insertDtree(comName, newsCode, function, dTree.getDtree());
+			dDAO.insertDtree(comName, newsCode, anaCode, dTree.getDtree());
 			Thread.sleep(1000);
 		}catch(Exception e){
 			e.printStackTrace();

@@ -19,13 +19,13 @@ public class DtreeDAO {
 	JSONReader jsonReader;
 	private MongoCollection<Document> collection=null;
 	
-	public void insertDtree(String comName, String newsCode, String function, JSONArray dTree){
+	public void insertDtree(String comName, String newsCode, String anaCode, JSONArray dTree){
 		collection = jsonReader.DB.getCollection("DTREE");
 		try {
 			Document document = new Document();
 			document.append("comName", comName);
 			document.append("newsCode", newsCode);
-			document.append("function", function);
+			document.append("anaCode", anaCode);
 			document.append("dTree", dTree);
 			collection.insertOne(document);
 		} catch (Exception e) {

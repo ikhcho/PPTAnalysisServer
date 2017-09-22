@@ -1,6 +1,9 @@
 package kr.co.ppt.server.service;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +12,8 @@ import java.util.Map;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import kr.co.ppt.analysis.Analysis;
@@ -17,6 +22,7 @@ import kr.co.ppt.analysis.MergeAnalysis;
 import kr.co.ppt.analysis.OpiAnalysis;
 import kr.co.ppt.analysis.OpiAnalysis2;
 import kr.co.ppt.analysis.ProAnalysis;
+import kr.co.ppt.analysis.RTAVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
 import kr.co.ppt.server.dao.AnalysisDAO;
@@ -38,8 +44,52 @@ public class AnalysisService {
 	
 	public static Map<String,Double> fit = new HashMap<>();
 	public static Map<String,Double> meg = new HashMap<>();
+	public static Map<String,Map<String,String[]>> threshold = new HashMap<>();
+	private static final Resource RESOURCE = new ClassPathResource("/");
+	private static final String[] newsCodes = {"culture","digital"};
+	static{
+		for(String newsCode : newsCodes){
+			try {
+				FileReader fr = new FileReader(RESOURCE.getURI().getPath().substring(1)+newsCode+"_tfidf.csv");
+				BufferedReader br = new BufferedReader(fr);
+				String data = "";
+				String text = br.readLine();
+				Map<String,String[]> map = new HashMap<>();
+				while ((text = br.readLine()) != null) {
+					map.put(text.split(",")[0], text.split(","));
+				}
+				threshold.put(newsCode, map);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 	
-	public String trainAnalyze(String comName, String newsCode, String function, String[] dateRange, boolean make){
+	private Map<String,Double> getThreshold(String comName, String newsCode, String anaCode){
+		int from = 1;
+		int to = 2;
+		switch(anaCode){
+		case "fit2":
+			from += 2;
+			to += 2;
+			break;
+		case "meg1":
+			from += 4;
+			to += 4;
+			break;
+		case "meg2":
+			from += 6;
+			to += 6;
+			break;
+		}
+		return dService.selectTFIDFMongo(newsCode,
+				Double.parseDouble(threshold.get(newsCode).get(comName)[from]),
+				Double.parseDouble(threshold.get(newsCode).get(comName)[to])
+				);
+	}
+	
+	public String trainAnalyze(String comName, String newsCode, String anaCode, String[] dateRange, boolean make){
 		long start = System.currentTimeMillis();
 		Analysis analysis = null;
 		JSONObject posJson = null;
@@ -47,7 +97,7 @@ public class AnalysisService {
 		JSONArray prodicArr = null;
 		JSONArray stockArr = sService.selectStock(comName);
 		List<String> csv = new ArrayList<String>();
-		switch(function){
+		switch(anaCode){
 			case "opi1":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
@@ -103,16 +153,16 @@ public class AnalysisService {
 				csv.add(predict);
 		}
 		if(make)
-			makeCSV(comName,newsCode,function,csv);
+			makeCSV(comName,newsCode,anaCode,csv);
 		long end = System.currentTimeMillis();
-		System.out.println("MongDB - " + function + "analysis 수행 시간 : "+(end-start)/1000 + "s");
+		System.out.println("MongDB - " + anaCode + "analysis 수행 시간 : "+(end-start)/1000 + "s");
 		
 		return String.valueOf(analysis.getSuccess()*100 / analysis.getPredictCnt());
 	}
 	
 	public JSONArray realtimeAnalyze(String predicDate, String newsCode){
 		JSONArray array = new JSONArray();
-		String[] functions = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
+		String[] anaCodes = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
 		List<CompanyVO> list = sService.selectComList();
 		for(CompanyVO companyVO : list){
 			Map<String,String> map = new HashMap<>();
@@ -121,9 +171,8 @@ public class AnalysisService {
 			JSONObject posJson = dService.selectOpiDicMongo(comName, "pos", "economic");;
 			JSONObject negJson = dService.selectOpiDicMongo(comName, "neg", "economic");
 			JSONArray prodicArr = dService.selectProDicMongo(comName, "economic");
-			for(String function : functions){
-				JSONArray treeArr = dTreeService.selectDtree(comName, "economic", function);
-				switch(function){
+			for(String anaCode : anaCodes){
+				switch(anaCode){
 					case "opi1":
 						analysis = new OpiAnalysis(posJson,negJson);
 						break;
@@ -137,36 +186,38 @@ public class AnalysisService {
 						analysis = new ProAnalysis(prodicArr);
 						break;
 					case "fit1":
-						analysis = new FilteredAnalysis(prodicArr,fit);
+						analysis = new FilteredAnalysis(prodicArr,getThreshold(comName,newsCode,anaCode));
 						break;
 					case "fit2":
-						analysis = new FilteredAnalysis(prodicArr,fit);
+						analysis = new FilteredAnalysis(prodicArr,getThreshold(comName,newsCode,anaCode));
 						break;
 					case "meg1":
-						analysis = new MergeAnalysis(posJson,negJson,prodicArr,meg);
+						analysis = new MergeAnalysis(posJson,negJson,prodicArr,getThreshold(comName,newsCode,anaCode));
 						break;
 					case "meg2":
-						analysis = new MergeAnalysis(posJson,negJson,prodicArr,meg);
+						analysis = new MergeAnalysis(posJson,negJson,prodicArr,getThreshold(comName,newsCode,anaCode));
 						break;
 				}
 				
-				analysis.setTreeArr(treeArr);
+				//JSONArray treeArr = dTreeService.selectDtree(comName, "economic", anaCode);
+				//analysis.setTreeArr(treeArr);
 				NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+predicDate+".json");
 				map.put("comNo", String.valueOf(companyVO.getNo()));
 				map.put("comName", comName);
-				map.put("anaCode", function);
+				map.put("anaCode", anaCode);
 				map.put("newsCode", newsCode);
 				map.put("todayFluc", analysis.todayAnalyze(morpVO));
 				map.put("tomorrowFluc", analysis.tomorrowAnalyze(morpVO));
 				JSONObject obj = new JSONObject(map);
 				array.add(obj);
-				System.out.println(obj.toJSONString());
+				System.out.println(map.toString());
 			}
 		}
+		System.out.println("RTA 끝");
 		return array;
 	}
 	
-	public String dTreeAnalyze(String comName, String newsCode, String function, String[] dateRange){
+	public String dTreeAnalyze(String comName, String newsCode, String anaCode, String[] dateRange){
 		long start = System.currentTimeMillis();
 		Analysis analysis = null;
 		JSONObject posJson = null;
@@ -174,8 +225,8 @@ public class AnalysisService {
 		JSONArray prodicArr = null;
 		Map<String,Double> tfidfMap = null;
 		JSONArray stockArr = sService.selectStock(comName);
-		JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, function);
-		switch(function){
+		JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
+		switch(anaCode){
 			case "opi1":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
@@ -221,12 +272,12 @@ public class AnalysisService {
 			String predict = analysis.trainAnalyze(morpVO);
 		}
 		long end = System.currentTimeMillis();
-		System.out.println("MongDB - " + function + "analysis 수행 시간 : "+(end-start)/1000 + "s");
+		System.out.println("MongDB - " + anaCode + "analysis 수행 시간 : "+(end-start)/1000 + "s");
 		
 		return String.valueOf(analysis.getSuccess()*100 / analysis.getPredictCnt());
 	}
 	
-	public String analyze(MorpVO morpVO, String comName, String newsCode, String function){
+	public String analyze(MorpVO morpVO, String comName, String newsCode, String anaCode){
 		long start = System.currentTimeMillis();
 		Analysis analysis = null;
 		JSONObject posJson = null;
@@ -234,7 +285,7 @@ public class AnalysisService {
 		JSONArray prodicArr = null;
 		Map<String,Double> tfidfMap = null;
 		JSONArray stockArr = sService.selectStock(comName);
-		switch(function){
+		switch(anaCode){
 			case "opi1":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
@@ -279,11 +330,11 @@ public class AnalysisService {
 				break;
 		}
 		long end = System.currentTimeMillis();
-		System.out.println(function + "analysis 수행 시간 : "+(end-start)/1000 + "s");
-		return comName + "의 " + function+ "analysis 수행 시간 : "+(end-start)/1000 + "s" + " : " + analysis.userReqAnalyze(morpVO);
+		System.out.println(anaCode + "analysis 수행 시간 : "+(end-start)/1000 + "s");
+		return comName + "의 " + anaCode+ "analysis 수행 시간 : "+(end-start)/1000 + "s" + " : " + analysis.userReqAnalyze(morpVO);
 	}
 	
-	public int getTfidfThreshold(String comName, String newsCode, String function, String[] dateRange, double from, double to){
+	public int getTfidfThreshold(String comName, String newsCode, String anaCode, String[] dateRange, double from, double to){
 		long start = System.currentTimeMillis();
 		Analysis analysis = null;
 		JSONObject posJson = null;
@@ -291,7 +342,7 @@ public class AnalysisService {
 		JSONArray prodicArr = null;
 		Map<String,Double> tfidfMap = null;
 		JSONArray stockArr = sService.selectStock(comName);
-		switch(function){
+		switch(anaCode){
 			case "fit1":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
 				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
@@ -323,12 +374,12 @@ public class AnalysisService {
 			String predict = analysis.trainAnalyze(morpVO);
 		}
 		long end = System.currentTimeMillis();
-		System.out.println("MongDB - " + function + "analysis 수행 시간 : "+(end-start)/1000 + "s");
+		System.out.println("MongDB - " + anaCode + "analysis 수행 시간 : "+(end-start)/1000 + "s");
 		
 		return analysis.getSuccess()*100 / analysis.getPredictCnt();
 	}
-	public void makeCSV(String comName, String newsCode, String function, List<String> csv){
-		String path = "D:\\PPT\\analysis\\"+newsCode+"\\"+comName+"_"+function+".csv";
+	public void makeCSV(String comName, String newsCode, String anaCode, List<String> csv){
+		String path = "D:\\PPT\\analysis\\"+newsCode+"\\"+comName+"_"+anaCode+".csv";
 		FileOutputStream fos;
 		try {
 			System.out.println("시작");
@@ -370,5 +421,39 @@ public class AnalysisService {
 			map.put("tomorrowFluc", obj.get("tomorrowFluc"));
 			aDAO.updateRTA(map);
 		}
+	}
+	
+	public JSONArray selectOneRTA(String comName){
+		JSONArray arr = new JSONArray();
+		for(RTAVO rta : aDAO.selectOneRTA(comName)){
+			Map<Object,Object> map = new HashMap<>();
+			map.put("no", rta.getNo());
+			map.put("comName", rta.getComName());
+			map.put("anaCode", rta.getAnaCode());
+			map.put("newsCode", rta.getNewsCode());
+			map.put("todayFluc", rta.getTodayFluc());
+			map.put("tomorrowFluc", rta.getTomorrowFluc());
+			map.put("regDate", rta.getRegDate());
+			JSONObject obj = new JSONObject(map);
+			arr.add(obj);
+		}
+		return arr;
+	}
+	
+	public JSONArray selectAllRTA(){
+		JSONArray arr = new JSONArray();
+		for(RTAVO rta : aDAO.selectAllRTA()){
+			Map<Object,Object> map = new HashMap<>();
+			map.put("no", rta.getNo());
+			map.put("comName", rta.getComName());
+			map.put("anaCode", rta.getAnaCode());
+			map.put("newsCode", rta.getNewsCode());
+			map.put("todayFluc", rta.getTodayFluc());
+			map.put("tomorrowFluc", rta.getTomorrowFluc());
+			map.put("regDate", rta.getRegDate());
+			JSONObject obj = new JSONObject(map);
+			arr.add(obj);
+		}
+		return arr;
 	}
 }
