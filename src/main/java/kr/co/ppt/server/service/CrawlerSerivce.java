@@ -93,13 +93,17 @@ public class CrawlerSerivce {
 				if(titleSet.isEmpty()){
 					titleSet.add(news.getTitle());
 				}else if(titleSet.contains(news.getTitle())){
+					System.out.println("중복 : " + news.getTitle());
 					continue;
 				}else{
+					System.out.println(titleSet.toString());
 					map.put("newsCode", newsCode);
 					map.put("title", news.getTitle());
 					map.put("link", hrefList.get(i));
 					JSONObject obj = new JSONObject(map);
 					arr.add(obj);
+					titleSet.add(news.getTitle());
+					System.out.println("추가 : " + news.getTitle());
 				}
 				if(arr.size() == num)
 					break;

@@ -168,9 +168,9 @@ public class AnalysisService {
 			Map<String,String> map = new HashMap<>();
 			String comName = companyVO.getName();
 			Analysis analysis = null;
-			JSONObject posJson = dService.selectOpiDicMongo(comName, "pos", "economic");;
-			JSONObject negJson = dService.selectOpiDicMongo(comName, "neg", "economic");
-			JSONArray prodicArr = dService.selectProDicMongo(comName, "economic");
+			JSONObject posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);;
+			JSONObject negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+			JSONArray prodicArr = dService.selectProDicMongo(comName, newsCode);
 			for(String anaCode : anaCodes){
 				switch(anaCode){
 					case "opi1":
@@ -199,7 +199,7 @@ public class AnalysisService {
 						break;
 				}
 				
-				//JSONArray treeArr = dTreeService.selectDtree(comName, "economic", anaCode);
+				//JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
 				//analysis.setTreeArr(treeArr);
 				NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+predicDate+".json");
 				map.put("comNo", String.valueOf(companyVO.getNo()));

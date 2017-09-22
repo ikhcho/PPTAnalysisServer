@@ -1,5 +1,5 @@
 
-select * from RT_ANALISYS order by no
+select count(no) from RT_ANALISYS order by no
 select count(no) from company order by no
 delete from company where name = '에이블씨엔씨'
 delete from stock where com_no = '485'

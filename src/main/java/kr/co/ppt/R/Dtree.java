@@ -38,7 +38,7 @@ public class Dtree {
 		connection.eval("data1 <- dTree(df)");
 		// dTree 정의
 		connection.eval("set.seed(1000)");
-		connection.eval("intrain<-createDataPartition(y=df$result, p=0.9, list=FALSE)");
+		connection.eval("intrain<-createDataPartition(y=df$result, p=0.8, list=FALSE)");
 		connection.eval("train<-df[intrain, ]");
 		connection.eval("test<-df[-intrain, ]");
 		connection.eval("treemod<-tree(result~. , data=train)");

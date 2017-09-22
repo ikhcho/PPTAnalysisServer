@@ -30,7 +30,6 @@ public class DtreeService {
 	public void insertDtree(String newsCode, String anaCode){
 		JSONReader jsonReader = new JSONReader();
 		MongoCollection<Document> collection = jsonReader.DB.getCollection("DTREE");
-		//collection.drop();
 		List<CompanyVO> comList =sService.selectComList();
 		String errorCom = "";
 		for(CompanyVO companyVO: comList){
@@ -40,7 +39,6 @@ public class DtreeService {
 				dTree.setDtree(comName,newsCode, anaCode);
 				dTree.getDtree();
 				dDAO.insertDtree(comName, newsCode, anaCode, dTree.getDtree());
-				Thread.sleep(1000);
 			}catch(Exception e){
 				System.out.println(companyVO.getName());
 				errorCom+=companyVO.getName()+"\n";
