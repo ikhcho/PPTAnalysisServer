@@ -122,26 +122,26 @@ public class AnalysisService {
 				break;
 			case "fit1":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new FilteredAnalysis(prodicArr,stockArr,fit);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
 				csv.add("fit1Inc,fit1Dec,fit1Equ,result");
 				break;
 			case "fit2":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new FilteredAnalysis(prodicArr,stockArr,fit);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
 				csv.add("fit2Inc,fit2Dec,fit2Equ,result");
 				break;
 			case "meg1":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,meg);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
 				csv.add("meg1Inc,meg1Dec,meg1Equ,result");
 				break;
 			case "meg2":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,meg);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
 				csv.add("meg2Inc,meg2Dec,meg2Equ,result");
 				break;
 		}
@@ -149,8 +149,10 @@ public class AnalysisService {
 		for(String date : dateRange){
 			NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+date+".json");
 			String predict = analysis.trainAnalyze(morpVO);
-			if(!predict.equals(""))
+			if(!predict.equals("")&&!predict.contains("NaN"))
 				csv.add(predict);
+			else
+				System.out.println(comName + "(" + anaCode + ")" + date + ":" + predict);
 		}
 		if(make)
 			makeCSV(comName,newsCode,anaCode,csv);
