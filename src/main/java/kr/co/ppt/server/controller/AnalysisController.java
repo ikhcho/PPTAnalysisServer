@@ -81,12 +81,6 @@ public class AnalysisController {
 	@RequestMapping("/fit.do")
 	public String tfidf(Model model, String newsCode){
 		String[] dateRange = Tool.dateRange("20170101","20170630");
-		double[][] thres = {
-				{2.5,4.5},{3,5},{3.5,5.5},{4,6},{4.5,6.5}, //2
-				{2.5,5.5},{3,6},{3.5,6.5},{4,7},{4.5,7.5}, //3
-				{2.5,6.5},{3,7},{3.5,7.5},{4,8},{4.5,8.5}, //4
-				{2.5,7.5},{3,8},{3.5,8.5},{4,9},{4.5,9.5}, //5
-				};
 		String path = "D:\\PPT\\"+newsCode+"_tfidf필터링기준.csv";
 		FileOutputStream fos;
 		try {
@@ -98,64 +92,10 @@ public class AnalysisController {
 					if(companyVO.getName().equals("한국카본"))
 						go=true;
 					//if(go){
-						fos.write((companyVO.getName()+",").getBytes("utf-8"));
-						int fit1Max = 0;
-						double fit1From =0;
-						double fit1To =0;
-						for(int i=0; i<thres.length; i++){
-							int value = aService.getTfidfThreshold(companyVO.getName(),newsCode,"fit1",dateRange,thres[i][0],thres[i][1]);
-							if(value>fit1Max){
-								fit1Max = value;
-								fit1From = thres[i][0];
-								fit1To = thres[i][1];
-							}
-							System.out.println("from : " + thres[i][0] + ", to : " + thres[i][1] + ", value : " + value);
-						}
-						fos.write((fit1From+","+fit1To+",").getBytes("utf-8"));
-						
-						int fit2Max = 0;
-						double fit2From =0;
-						double fit2To =0;
-						for(int i=0; i<thres.length; i++){
-							int value = aService.getTfidfThreshold(companyVO.getName(),newsCode,"fit2",dateRange,thres[i][0],thres[i][1]);
-							if(value>fit2Max){
-								fit2Max = value;
-								fit2From = thres[i][0];
-								fit2To = thres[i][1];
-							}
-							System.out.println("from : " + thres[i][0] + ", to : " + thres[i][1] + ", value : " + value);
-						}
-						fos.write((fit2From+","+fit2To+",").getBytes("utf-8"));
-						
-						int meg1Max = 0;
-						double meg1From =0;
-						double meg1To =0;
-						for(int i=0; i<thres.length; i++){
-							int value = aService.getTfidfThreshold(companyVO.getName(),newsCode,"meg1",dateRange,thres[i][0],thres[i][1]);
-							if(value>meg1Max){
-								meg1Max = value;
-								meg1From = thres[i][0];
-								meg1To = thres[i][1];
-							}
-							System.out.println("from : " + thres[i][0] + ", to : " + thres[i][1] + ", value : " + value);
-						}
-						fos.write((meg1From+","+meg1To+",").getBytes("utf-8"));
-						
-						int meg2Max = 0;
-						double meg2From =0;
-						double meg2To =0;
-						for(int i=0; i<thres.length; i++){
-							int value = aService.getTfidfThreshold(companyVO.getName(),newsCode,"meg2",dateRange,thres[i][0],thres[i][1]);
-							if(value>meg2Max){
-								meg2Max = value;
-								meg2From = thres[i][0];
-								meg2To = thres[i][1];
-							}
-							System.out.println("from : " + thres[i][0] + ", to : " + thres[i][1] + ", value : " + value);
-						}
-						fos.write((meg2From+","+meg2To+"\n").getBytes("utf-8"));
+						String row = aService.getTfidfThreshold(companyVO.getName(), newsCode, dateRange);
+						fos.write((companyVO.getName()+row).getBytes("utf-8"));
 						fos.flush();
-						//}
+					//}
 				}catch(Exception e){
 					System.out.println(companyVO.getName());
 					e.printStackTrace();
@@ -175,8 +115,6 @@ public class AnalysisController {
 	//훈련용 CSV만들기
 	@RequestMapping("/makeCSV.do")
 	public String makeCSV(Model model, String newsCode){
-		//aService.fit = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
-		//aService.meg = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
 		String[] anaCodes = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
 		String[] dateRange = Tool.dateRange("20170101", "20170630");
 		List<String> list = new ArrayList<String>();

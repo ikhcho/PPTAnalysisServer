@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +46,7 @@ public class AnalysisService {
 	public static Map<String,Map<String,String[]>> threshold = new HashMap<>();
 	private static final Resource RESOURCE = new ClassPathResource("/");
 	private static final String[] newsCodes = {"culture","digital"};
+	private Map<String,Map<String,Double>> tfidfMap = new HashMap<>();
 	static{
 		for(String newsCode : newsCodes){
 			try {
@@ -64,7 +66,7 @@ public class AnalysisService {
 		}
 	}
 	
-	private Map<String,Double> getThreshold(String comName, String newsCode, String anaCode){
+	private Map<String,Double> getTfidfMap(String comName, String newsCode, String anaCode){
 		int from = 1;
 		int to = 2;
 		switch(anaCode){
@@ -81,10 +83,20 @@ public class AnalysisService {
 			to += 6;
 			break;
 		}
-		return dService.selectTFIDFMongo(newsCode,
-				Double.parseDouble(threshold.get(newsCode).get(comName)[from]),
-				Double.parseDouble(threshold.get(newsCode).get(comName)[to])
-				);
+		String key = newsCode+threshold.get(newsCode).get(comName)[from]+threshold.get(newsCode).get(comName)[to];
+		
+		if(!tfidfMap.containsKey(key)){
+			Map map = dService.selectTFIDFMongo(newsCode,
+					Double.parseDouble(threshold.get(newsCode).get(comName)[from]),
+					Double.parseDouble(threshold.get(newsCode).get(comName)[to])
+					);
+			tfidfMap.put(key, map);
+			System.out.println("tfidfMap 추가 : "+comName + " - " + anaCode);
+			return map;
+			
+		}else{
+			return tfidfMap.get(key);
+		}
 	}
 	
 	public String trainAnalyze(String comName, String newsCode, String anaCode, String[] dateRange, boolean make){
@@ -120,26 +132,26 @@ public class AnalysisService {
 				break;
 			case "fit1":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new FilteredAnalysis(prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
+				analysis = new FilteredAnalysis(prodicArr,stockArr,getTfidfMap(comName,newsCode,anaCode));
 				csv.add("fit1Inc,fit1Dec,fit1Equ,result");
 				break;
 			case "fit2":
-				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new FilteredAnalysis(prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
+				prodicArr = dService.selectPro2DicMongo(comName, newsCode);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,getTfidfMap(comName,newsCode,anaCode));
 				csv.add("fit2Inc,fit2Dec,fit2Equ,result");
 				break;
 			case "meg1":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,getTfidfMap(comName,newsCode,anaCode));
 				csv.add("meg1Inc,meg1Dec,meg1Equ,result");
 				break;
 			case "meg2":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
-				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
+				prodicArr = dService.selectPro2DicMongo(comName, newsCode);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,getTfidfMap(comName,newsCode,anaCode));
 				csv.add("meg2Inc,meg2Dec,meg2Equ,result");
 				break;
 		}
@@ -169,6 +181,7 @@ public class AnalysisService {
 			JSONObject posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);;
 			JSONObject negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 			JSONArray prodicArr = dService.selectProDicMongo(comName, newsCode);
+			JSONArray pro2dicArr = dService.selectPro2DicMongo(comName, newsCode);
 			for(String anaCode : anaCodes){
 				switch(anaCode){
 					case "opi1":
@@ -181,19 +194,19 @@ public class AnalysisService {
 						analysis = new ProAnalysis(prodicArr);
 						break;
 					case "pro2":
-						analysis = new ProAnalysis(prodicArr);
+						analysis = new ProAnalysis(pro2dicArr);
 						break;
 					case "fit1":
-						analysis = new FilteredAnalysis(prodicArr,getThreshold(comName,newsCode,anaCode));
+						analysis = new FilteredAnalysis(prodicArr,getTfidfMap(comName,newsCode,anaCode));
 						break;
 					case "fit2":
-						analysis = new FilteredAnalysis(prodicArr,getThreshold(comName,newsCode,anaCode));
+						analysis = new FilteredAnalysis(pro2dicArr,getTfidfMap(comName,newsCode,anaCode));
 						break;
 					case "meg1":
-						analysis = new MergeAnalysis(posJson,negJson,prodicArr,getThreshold(comName,newsCode,anaCode));
+						analysis = new MergeAnalysis(posJson,negJson,prodicArr,getTfidfMap(comName,newsCode,anaCode));
 						break;
 					case "meg2":
-						analysis = new MergeAnalysis(posJson,negJson,prodicArr,getThreshold(comName,newsCode,anaCode));
+						analysis = new MergeAnalysis(posJson,negJson,pro2dicArr,getTfidfMap(comName,newsCode,anaCode));
 						break;
 				}
 				
@@ -244,23 +257,23 @@ public class AnalysisService {
 				break;
 			case "fit1":
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new FilteredAnalysis(prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
+				analysis = new FilteredAnalysis(prodicArr,stockArr,getTfidfMap(comName,newsCode,anaCode));
 				break;
 			case "fit2":
-				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new FilteredAnalysis(prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
+				prodicArr = dService.selectPro2DicMongo(comName, newsCode);
+				analysis = new FilteredAnalysis(prodicArr,stockArr,getTfidfMap(comName,newsCode,anaCode));
 				break;
 			case "meg1":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,getTfidfMap(comName,newsCode,anaCode));
 				break;
 			case "meg2":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
-				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,getThreshold(comName,newsCode,anaCode));
+				prodicArr = dService.selectPro2DicMongo(comName, newsCode);
+				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,getTfidfMap(comName,newsCode,anaCode));
 				break;
 		}
 		analysis.setTreeArr(treeArr);
@@ -307,7 +320,7 @@ public class AnalysisService {
 				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
 				break;
 			case "fit2":
-				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				prodicArr = dService.selectPro2DicMongo(comName, newsCode);
 				tfidfMap = dService.selectTFIDFMongo(newsCode, 3.9, 6.1);
 				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
 				break;
@@ -321,7 +334,7 @@ public class AnalysisService {
 			case "meg2":
 				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
 				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
-				prodicArr = dService.selectProDicMongo(comName, newsCode);
+				prodicArr = dService.selectPro2DicMongo(comName, newsCode);
 				tfidfMap = dService.selectTFIDFMongo(newsCode, 4.1, 6.5);
 				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
 				break;
@@ -331,50 +344,76 @@ public class AnalysisService {
 		return comName + "의 " + anaCode+ "analysis 수행 시간 : "+(end-start)/1000 + "s" + " : " + analysis.userReqAnalyze(morpVO);
 	}
 	
-	public int getTfidfThreshold(String comName, String newsCode, String anaCode, String[] dateRange, double from, double to){
+	public String getTfidfThreshold(String comName, String newsCode, String[] dateRange){
 		long start = System.currentTimeMillis();
 		Analysis analysis = null;
-		JSONObject posJson = null;
-		JSONObject negJson = null;
-		JSONArray prodicArr = null;
-		Map<String,Double> tfidfMap = null;
+		JSONObject posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
+		JSONObject negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+		JSONArray prodicArr = dService.selectProDicMongo(comName, newsCode);
+		JSONArray pro2dicArr = dService.selectPro2DicMongo(comName, newsCode);
 		JSONArray stockArr = sService.selectStock(comName);
-		switch(anaCode){
-			case "fit1":
-				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
-				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
-				break;
-			case "fit2":
-				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
-				analysis = new FilteredAnalysis(prodicArr,stockArr,tfidfMap);
-				break;
-			case "meg1":
-				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
-				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
-				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
-				break;
-			case "meg2":
-				posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);
-				negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
-				prodicArr = dService.selectProDicMongo(comName, newsCode);
-				tfidfMap = dService.selectTFIDFMongo(newsCode, from, to);
-				analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
-				break;
+		
+		double[] row = new double[12];
+		
+		double[][] thres = {
+				{2.5,4.5},{3,5},{3.5,5.5},{4,6},{4.5,6.5}, //2
+				{2.5,5.5},{3,6},{3.5,6.5},{4,7},{4.5,7.5}, //3
+				{2.5,6.5},{3,7},{3.5,7.5},{4,8},{4.5,8.5}, //4
+				{2.5,7.5},{3,8},{3.5,8.5},{4,9},{4.5,9.5}, //5
+				};
+		for (int i = 0; i < thres.length; i++) {
+			Map<String, Double> tfidfMap = dService.selectTFIDFMongo(newsCode, thres[i][0], thres[i][1]);
+			analysis = new FilteredAnalysis(prodicArr, stockArr, tfidfMap);
+			int value = getPredicValue(analysis,dateRange,newsCode);
+			if(value>row[0]){
+				row[0] = value;
+				row[1] = thres[i][0];
+				row[2] = thres[i][1];
+			}
+			
+			analysis = new FilteredAnalysis(pro2dicArr, stockArr, tfidfMap);
+			value = getPredicValue(analysis,dateRange,newsCode);
+			if(value>row[3]){
+				row[3] = value;
+				row[4] = thres[i][0];
+				row[5] = thres[i][1];
+			}
+			
+			analysis = new MergeAnalysis(posJson,negJson,prodicArr,stockArr,tfidfMap);
+			value = getPredicValue(analysis,dateRange,newsCode);
+			if(value>row[6]){
+				row[6] = value;
+				row[7] = thres[i][0];
+				row[8] = thres[i][1];
+			}
+			
+			analysis = new MergeAnalysis(posJson,negJson,pro2dicArr,stockArr,tfidfMap);
+			value = getPredicValue(analysis,dateRange,newsCode);
+			if(value>row[9]){
+				row[9] = value;
+				row[10] = thres[i][0];
+				row[11] = thres[i][1];
+			}
 		}
 		
+		long end = System.currentTimeMillis();
+		System.out.println("MongDB - " + comName + " 수행 시간 : "+(end-start)/1000 + "s");
+		String result="";
+		for(int i=0; i<4; i++){
+			result += "," + row[i*3+1] + row[i*3+2];
+		}
+		System.out.println(comName+result);
+		return result+"\n";
+	}
+	
+	public int getPredicValue(Analysis analysis, String[] dateRange, String newsCode){
 		for(String date : dateRange){
 			NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+date+".json");
 			String predict = analysis.trainAnalyze(morpVO);
 		}
-		long end = System.currentTimeMillis();
-		System.out.println("MongDB - " + anaCode + "analysis 수행 시간 : "+(end-start)/1000 + "s");
-		
 		return analysis.getSuccess()*100 / analysis.getPredictCnt();
 	}
+	
 	public void makeCSV(String comName, String newsCode, String anaCode, List<String> csv){
 		String path = "D:\\PPT\\analysis\\"+newsCode+"\\"+comName+"_"+anaCode+".csv";
 		FileOutputStream fos;
