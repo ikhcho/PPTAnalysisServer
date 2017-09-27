@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import kr.co.ppt.server.service.MorpService;
+import kr.co.ppt.util.Tool;
 
 @Controller
 @RequestMapping("/morp")
@@ -64,12 +65,13 @@ public class MorpController {
 		System.out.println("reqText1요청");
 		ableMethod[0] = false;
 		requestCnt++;
-		Map<String,Integer> morp = mService.getTextMorp1(text).getMorp();
+		Map<String,Integer> morp = Tool.sortMap(mService.getTextMorp1(text).getMorp());
 		JSONObject obj = new JSONObject(morp);
 		requestCnt--;
 		ableMethod[0] = true;
 		return obj.toJSONString();
 	}
+	
 	@RequestMapping("/reqText2.do")
 	@ResponseBody
 	public String reqText2(String text){

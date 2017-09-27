@@ -148,6 +148,13 @@ public class DictionaryService {
 		return map;
 	}
 	
+	public Map<String,Double> selectTFIDFMongo(String newsCode){
+		Bson query = Filters.eq("newsCode",newsCode);
+		Map<String,Double> map =dDAO.selectTFIDF(query);
+		System.out.println("MongoDB - TF-IDF사전 " + map.size() + "건 호출 성공");
+		return map;
+	}
+	
 	//=======================Connect to Oracle================================//
 	public List<TfidfVO> selectTFIDF(String newsCode, double from, double to){
 		Map<Object,Object> dataMap = new HashMap<Object,Object>();

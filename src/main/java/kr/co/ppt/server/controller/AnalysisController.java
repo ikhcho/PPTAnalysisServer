@@ -41,6 +41,7 @@ public class AnalysisController {
 			else
 				return  callback+"("+aService.selectOneRTA(comName).toJSONString()+")";
 		}
+		System.out.println("요청");
 		return aService.selectAllRTA().toJSONString();
 	}
 	

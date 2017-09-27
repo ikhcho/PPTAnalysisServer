@@ -225,6 +225,26 @@ public class Tool {
 		}
 		return sortedMap;
 	}
+	
+	//단어맵 정렬 - 반환타입 : map 리스트
+		public static Map sortMap(Map map, int num) {
+			List<String> list = new ArrayList<String>();
+			list.addAll(map.keySet());
+			Collections.sort(list, new Comparator() {
+				public int compare(Object o1, Object o2) {
+					Object v1 = map.get(o1);
+					Object v2 = map.get(o2);
+
+					return ((Comparable) v2).compareTo(v1);
+				}
+
+			});
+			Map sortedMap = new LinkedHashMap();
+			for(int i=0; i<num; i++){
+				sortedMap.put(list.get(i), map.get(list.get(i)));
+			}
+			return sortedMap;
+		}
 		
 	//장 열린 일자 얻기
 	public static List<String> getOpenDate(){

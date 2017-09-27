@@ -45,7 +45,7 @@ public class AnalysisService {
 	
 	public static Map<String,Map<String,String[]>> threshold = new HashMap<>();
 	private static final Resource RESOURCE = new ClassPathResource("/");
-	private static final String[] newsCodes = {"culture","digital"};
+	private static final String[] newsCodes = {"culture","digital","economic","foreign","politics"};
 	private Map<String,Map<String,Double>> tfidfMap = new HashMap<>();
 	static{
 		for(String newsCode : newsCodes){
@@ -174,8 +174,8 @@ public class AnalysisService {
 		JSONArray array = new JSONArray();
 		String[] anaCodes = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
 		List<CompanyVO> list = sService.selectComList();
+		NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+predicDate+".json");
 		for(CompanyVO companyVO : list){
-			Map<String,String> map = new HashMap<>();
 			String comName = companyVO.getName();
 			Analysis analysis = null;
 			JSONObject posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);;
@@ -183,6 +183,7 @@ public class AnalysisService {
 			JSONArray prodicArr = dService.selectProDicMongo(comName, newsCode);
 			JSONArray pro2dicArr = dService.selectPro2DicMongo(comName, newsCode);
 			for(String anaCode : anaCodes){
+				Map<String,String> map = new HashMap<>();
 				switch(anaCode){
 					case "opi1":
 						analysis = new OpiAnalysis(posJson,negJson);
@@ -212,7 +213,7 @@ public class AnalysisService {
 				
 				JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
 				analysis.setTreeArr(treeArr);
-				NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+predicDate+".json");
+				
 				map.put("comNo", String.valueOf(companyVO.getNo()));
 				map.put("comName", comName);
 				map.put("anaCode", anaCode);
@@ -400,7 +401,7 @@ public class AnalysisService {
 		System.out.println("MongDB - " + comName + " 수행 시간 : "+(end-start)/1000 + "s");
 		String result="";
 		for(int i=0; i<4; i++){
-			result += "," + row[i*3+1] + row[i*3+2];
+			result += "," + row[i*3+1] + "," + row[i*3+2];
 		}
 		System.out.println(comName+result);
 		return result+"\n";

@@ -13,9 +13,9 @@ import org.json.simple.parser.JSONParser;
 public class NewsMorpVO {
 	private String category;
 	private String newsDate;
-	private Map<String, Integer> prev;
-	private Map<String, Integer> begin;
-	private Map<String, Integer> append;
+	private Map<String, Integer> prev = new HashMap<>();
+	private Map<String, Integer> begin = new HashMap<>();
+	private Map<String, Integer> append = new HashMap<>();
 	
 	//FileReader을 이용한 객체생성
 	public NewsMorpVO(String fileName){
@@ -43,13 +43,17 @@ public class NewsMorpVO {
 		
 	public void setWordMap(JSONObject parentObject,String key) {
 		JSONArray childArray = (JSONArray) parentObject.get(key);
-		JSONObject childObject = (JSONObject) childArray.get(0);
-		if(key.equals("prev")){
-			prev = mapCasting(childObject);
-		}else if(key.equals("begin")){
-			begin = mapCasting(childObject);
-		}else{
-			append = mapCasting(childObject);
+		try{
+			JSONObject childObject = (JSONObject) childArray.get(0);
+			if(key.equals("prev")){
+				prev = mapCasting(childObject);
+			}else if(key.equals("begin")){
+				begin = mapCasting(childObject);
+			}else{
+				append = mapCasting(childObject);
+			}
+		}catch(Exception e){
+			System.out.println(key+"가 존재하지 않거나 크기가 0");
 		}
 	}
 	

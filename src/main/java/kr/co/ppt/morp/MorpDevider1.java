@@ -40,7 +40,7 @@ public class MorpDevider1 {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return Tool.sortMap(map);
+		return map;
 	}
 	
 	private void devide(String text, Map<String,Integer> map) throws IOException{

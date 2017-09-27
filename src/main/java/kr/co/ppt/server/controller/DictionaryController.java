@@ -26,6 +26,7 @@ import kr.co.ppt.dictionary.TfidfVO;
 import kr.co.ppt.mongo.JSONReader;
 import kr.co.ppt.server.service.DictionaryService;
 import kr.co.ppt.stock.KospiVO;
+import kr.co.ppt.util.Tool;
 
 @Controller
 @RequestMapping("/dictionary")
@@ -45,7 +46,7 @@ public class DictionaryController {
 	@ResponseBody
 	public String selectOpiDicMongo(String comName,String opinion, String newsCode){
 		JSONObject obj = dService.selectOpiDicMongo(comName, opinion, newsCode);
-		Iterator iter = obj.keySet().iterator();
+		Iterator iter = Tool.sortMap(obj, 100).keySet().iterator();
 		String result = "[";
 		while(iter.hasNext()){
 			String key = (String)iter.next();
@@ -94,9 +95,13 @@ public class DictionaryController {
 	@RequestMapping("/mongo/selectTFIDF.do")
 	@ResponseBody
 	public String selectTFIDFMongo(String newsCode,double from, double to){
-		dService.selectTFIDFMongo(newsCode,from,to);
-		return "";
+		if(from==0 && to == 0){
+			return new JSONObject(dService.selectTFIDFMongo(newsCode)).toJSONString();
+		}
+		else
+			return new JSONObject(dService.selectTFIDFMongo(newsCode,from,to)).toJSONString();
 	}
+	
 	//=======================Connect to ORACLE================================//
 	@RequestMapping("/oracle/selectTFIDF.do")
 	@ResponseBody
