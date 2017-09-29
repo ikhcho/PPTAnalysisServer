@@ -24,6 +24,7 @@ import kr.co.ppt.dictionary.OpiDicVO;
 import kr.co.ppt.dictionary.ProDicVO;
 import kr.co.ppt.dictionary.TfidfVO;
 import kr.co.ppt.mongo.JSONReader;
+import kr.co.ppt.server.service.AnalysisService;
 import kr.co.ppt.server.service.DictionaryService;
 import kr.co.ppt.stock.KospiVO;
 import kr.co.ppt.util.Tool;
@@ -33,6 +34,8 @@ import kr.co.ppt.util.Tool;
 public class DictionaryController {
 	@Autowired
 	DictionaryService dService;
+	@Autowired
+	AnalysisService aService;
 	
 	//=======================Connect to MongoDB================================//
 	@RequestMapping("/mongo/insertDictionary.do")
@@ -46,7 +49,7 @@ public class DictionaryController {
 	@ResponseBody
 	public String selectOpiDicMongo(String comName,String opinion, String newsCode){
 		JSONObject obj = dService.selectOpiDicMongo(comName, opinion, newsCode);
-		Iterator iter = Tool.sortMap(obj, 100).keySet().iterator();
+		/*Iterator iter = Tool.sortMap(obj, 100).keySet().iterator();
 		String result = "[";
 		while(iter.hasNext()){
 			String key = (String)iter.next();
@@ -56,8 +59,8 @@ public class DictionaryController {
 			result += obj.get(key)+"},";
 		}
 		result = result.substring(0, result.length()-1);
-		result += "]";
-		return result;
+		result += "]";*/
+		return obj.toJSONString();
 	}
 	
 	@RequestMapping("/mongo/selectProDic.do")
@@ -94,12 +97,9 @@ public class DictionaryController {
 	
 	@RequestMapping("/mongo/selectTFIDF.do")
 	@ResponseBody
-	public String selectTFIDFMongo(String newsCode,String from, String to){
-		if(from== null && to == null){
-			return new JSONObject(dService.selectTFIDFMongo(newsCode)).toJSONString();
-		}
-		else
-			return new JSONObject(dService.selectTFIDFMongo(newsCode,Double.parseDouble(from),Double.parseDouble(to))).toJSONString();
+	public String selectTFIDFMongo(String comName,String newsCode, String anaCode){
+		JSONObject obj = new JSONObject(aService.getTfidfMap(comName,newsCode,anaCode));
+		return obj.toJSONString();
 	}
 	
 	//=======================Connect to ORACLE================================//

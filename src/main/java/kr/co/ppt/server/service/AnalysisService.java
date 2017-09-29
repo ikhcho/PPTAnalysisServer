@@ -68,7 +68,7 @@ public class AnalysisService {
 		}
 	}
 	
-	private Map<String,Double> getTfidfMap(String comName, String newsCode, String anaCode){
+	public Map<String,Double> getTfidfMap(String comName, String newsCode, String anaCode){
 		int from = 1;
 		int to = 2;
 		switch(anaCode){
