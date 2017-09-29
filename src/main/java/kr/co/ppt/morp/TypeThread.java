@@ -89,14 +89,17 @@ public class TypeThread extends Thread{
 				}
 				br.close();
 				fr.close();
+				System.out.println("prev size : "+prev.size());
+				System.out.println("begin size : "+begin.size());
+				System.out.println("append size : "+append.size());
 				
 				//형태소 저장
-				if(begin.size()==0 || append.size()==0){
+				if(prev.size()!=0 && (begin.size()==0 || append.size()==0)){
 					KomoranThread prevThread = new KomoranThread(type+dateRange[i]+"_prev",prev);
 					prevThread.start();
 					prevThread.join();
 				}
-				if(append.size()==0 && begin.size()!=0){
+				if(begin.size()!=0){
 					KomoranThread beginThread = new KomoranThread(type+dateRange[i]+"_begin",begin);
 					beginThread.start();
 					beginThread.join();
@@ -106,7 +109,6 @@ public class TypeThread extends Thread{
 					appendThread.start();
 					appendThread.join();
 				}
-				
 				//File 통합
 				FileOutputStream fos = new FileOutputStream("D:\\PPT\\mining\\"+type+dateRange[i]+".json");
 				FileReader prevFr = new FileReader("D:\\PPT\\mining\\"+type+dateRange[i]+"_prev.json");
@@ -130,8 +132,9 @@ public class TypeThread extends Thread{
 					}
 					beginBr.close();
 					beginFr.close();
-					fos.write("], \"append\" : [".getBytes("utf-8"));
 				}catch(Exception e){
+					e.printStackTrace();
+				}finally{
 					fos.write("], \"append\" : [".getBytes("utf-8"));
 				}
 				try{
@@ -143,8 +146,9 @@ public class TypeThread extends Thread{
 					}
 					appendBr.close();
 					appendFr.close();
-					fos.write("]}".getBytes("utf-8"));
 				}catch(Exception e){
+					e.printStackTrace();
+				}finally{
 					fos.write("]}".getBytes("utf-8"));
 				}
 				fos.close();

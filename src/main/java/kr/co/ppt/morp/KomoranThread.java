@@ -39,6 +39,8 @@ public class KomoranThread extends Thread{
 			}
 			result = result.substring(0, result.length()-1);
 			result +="}";
+			if(result.length()==1)
+				result="";
 			byte[] b = result.getBytes("utf-8");
 			fos.write(b);
 			fos.flush();

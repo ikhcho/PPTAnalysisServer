@@ -33,10 +33,10 @@ public class CrawlerSerivce {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 		while(true){
 			String today = sdf.format(new Date());
-			CrawlerThread economic = new CrawlerThread(NewsCategoryVO.getTabMap().get(newsCode), today,1);
-			economic.start();
+			CrawlerThread crawler = new CrawlerThread(NewsCategoryVO.getTabMap().get(newsCode), today,1);
+			crawler.start();
 			try {
-				economic.join();
+				crawler.join();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
