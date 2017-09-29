@@ -91,7 +91,7 @@ public class TypeThread extends Thread{
 				fr.close();
 				
 				//형태소 저장
-				if(begin.size()==0){
+				if(begin.size()==0 || append.size()==0){
 					KomoranThread prevThread = new KomoranThread(type+dateRange[i]+"_prev",prev);
 					prevThread.start();
 					prevThread.join();
@@ -130,10 +130,10 @@ public class TypeThread extends Thread{
 					}
 					beginBr.close();
 					beginFr.close();
+					fos.write("], \"append\" : [".getBytes("utf-8"));
 				}catch(Exception e){
-					
+					fos.write("], \"append\" : [".getBytes("utf-8"));
 				}
-				fos.write("], \"append\" : [".getBytes("utf-8"));
 				try{
 					FileReader appendFr = new FileReader("D:\\PPT\\mining\\"+type+dateRange[i]+"_append.json");
 					BufferedReader appendBr = new BufferedReader(appendFr);
@@ -143,10 +143,10 @@ public class TypeThread extends Thread{
 					}
 					appendBr.close();
 					appendFr.close();
+					fos.write("]}".getBytes("utf-8"));
 				}catch(Exception e){
-					
+					fos.write("]}".getBytes("utf-8"));
 				}
-				fos.write("]}".getBytes("utf-8"));
 				fos.close();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block

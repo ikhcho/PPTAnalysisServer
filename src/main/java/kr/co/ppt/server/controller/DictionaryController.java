@@ -94,12 +94,12 @@ public class DictionaryController {
 	
 	@RequestMapping("/mongo/selectTFIDF.do")
 	@ResponseBody
-	public String selectTFIDFMongo(String newsCode,double from, double to){
-		if(from==0 && to == 0){
+	public String selectTFIDFMongo(String newsCode,String from, String to){
+		if(from== null && to == null){
 			return new JSONObject(dService.selectTFIDFMongo(newsCode)).toJSONString();
 		}
 		else
-			return new JSONObject(dService.selectTFIDFMongo(newsCode,from,to)).toJSONString();
+			return new JSONObject(dService.selectTFIDFMongo(newsCode,Double.parseDouble(from),Double.parseDouble(to))).toJSONString();
 	}
 	
 	//=======================Connect to ORACLE================================//

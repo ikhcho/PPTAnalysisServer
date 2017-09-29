@@ -41,7 +41,7 @@ public class CrawlerSerivce {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			aService.updateRTA(aService.realtimeAnalyze(today, newsCode));
+			aService.updateRTA(aService.realtimeAnalyzeWithFile(today, newsCode));
 		}
 	}
 	

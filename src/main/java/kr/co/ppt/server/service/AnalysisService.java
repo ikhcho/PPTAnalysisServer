@@ -24,6 +24,8 @@ import kr.co.ppt.analysis.OpiAnalysis;
 import kr.co.ppt.analysis.OpiAnalysis2;
 import kr.co.ppt.analysis.ProAnalysis;
 import kr.co.ppt.analysis.RTAVO;
+import kr.co.ppt.dictionary.OpiDicVO;
+import kr.co.ppt.dictionary.ProDicVO;
 import kr.co.ppt.morp.MorpVO;
 import kr.co.ppt.morp.NewsMorpVO;
 import kr.co.ppt.server.dao.AnalysisDAO;
@@ -45,7 +47,7 @@ public class AnalysisService {
 	
 	public static Map<String,Map<String,String[]>> threshold = new HashMap<>();
 	private static final Resource RESOURCE = new ClassPathResource("/");
-	private static final String[] newsCodes = {"culture","digital","economic","foreign","politics"};
+	private static final String[] newsCodes = {"culture","digital","economic","entertain","foreign","politics","society"};
 	private Map<String,Map<String,Double>> tfidfMap = new HashMap<>();
 	static{
 		for(String newsCode : newsCodes){
@@ -182,6 +184,65 @@ public class AnalysisService {
 			JSONObject negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 			JSONArray prodicArr = dService.selectProDicMongo(comName, newsCode);
 			JSONArray pro2dicArr = dService.selectPro2DicMongo(comName, newsCode);
+			for(String anaCode : anaCodes){
+				Map<String,String> map = new HashMap<>();
+				switch(anaCode){
+					case "opi1":
+						analysis = new OpiAnalysis(posJson,negJson);
+						break;
+					case "opi2":
+						analysis = new OpiAnalysis2(posJson,negJson);
+						break;
+					case "pro1":
+						analysis = new ProAnalysis(prodicArr);
+						break;
+					case "pro2":
+						analysis = new ProAnalysis(pro2dicArr);
+						break;
+					case "fit1":
+						analysis = new FilteredAnalysis(prodicArr,getTfidfMap(comName,newsCode,anaCode));
+						break;
+					case "fit2":
+						analysis = new FilteredAnalysis(pro2dicArr,getTfidfMap(comName,newsCode,anaCode));
+						break;
+					case "meg1":
+						analysis = new MergeAnalysis(posJson,negJson,prodicArr,getTfidfMap(comName,newsCode,anaCode));
+						break;
+					case "meg2":
+						analysis = new MergeAnalysis(posJson,negJson,pro2dicArr,getTfidfMap(comName,newsCode,anaCode));
+						break;
+				}
+				
+				JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
+				analysis.setTreeArr(treeArr);
+				
+				map.put("comNo", String.valueOf(companyVO.getNo()));
+				map.put("comName", comName);
+				map.put("anaCode", anaCode);
+				map.put("newsCode", newsCode);
+				map.put("todayFluc", analysis.todayAnalyze(morpVO));
+				map.put("tomorrowFluc", analysis.tomorrowAnalyze(morpVO));
+				JSONObject obj = new JSONObject(map);
+				array.add(obj);
+				System.out.println(map.toString());
+			}
+		}
+		System.out.println("RTA 끝");
+		return array;
+	}
+	
+	public JSONArray realtimeAnalyzeWithFile(String predicDate, String newsCode){
+		JSONArray array = new JSONArray();
+		String[] anaCodes = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
+		List<CompanyVO> list = sService.selectComList();
+		NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+predicDate+".json");
+		for(CompanyVO companyVO : list){
+			String comName = companyVO.getName();
+			Analysis analysis = null;
+			JSONObject posJson = new OpiDicVO(newsCode, comName, "pos").getOpiDic();
+			JSONObject negJson = new OpiDicVO(newsCode, comName, "neg").getOpiDic();
+			JSONArray prodicArr = new ProDicVO(newsCode, comName).getProdicArr();
+			JSONArray pro2dicArr = new ProDicVO(newsCode, comName+"2").getProdicArr();
 			for(String anaCode : anaCodes){
 				Map<String,String> map = new HashMap<>();
 				switch(anaCode){
