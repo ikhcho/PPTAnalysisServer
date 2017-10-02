@@ -9,6 +9,7 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import kr.co.ppt.server.service.MorpService;
@@ -22,12 +23,38 @@ public class MorpController {
 	@Autowired
 	MorpService mService;
 	
-	@RequestMapping("/reqMorp.do")
+	@RequestMapping(value="/reqMorp.do", method=RequestMethod.POST)
+	@ResponseBody
 	public String reqMorp(String type, String data){
 		System.out.println("요청");
 		System.out.println("현재 요청인원 : " + requestCnt);
 		System.out.println(data);
-		try {
+		if(ableMethod[0]){
+			if(type.equals("text"))
+				return reqText1(data);
+			else if(type.equals("news"))
+				return reqNews1(data);
+		}else if(ableMethod[1]){
+			if(type.equals("text"))
+				return reqText2(data);
+			else if(type.equals("news"))
+				return reqNews2(data);
+		}else if(ableMethod[2]){
+			if(type.equals("text"))
+				return reqText3(data);
+			else if(type.equals("news"))
+				return reqNews3(data);
+		}else{
+			try {
+				Thread.sleep(500);
+				reqMorp(type,data);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return "에러";
+		/*try {
 			data = URLEncoder.encode(data,"utf-8");
 		} catch (UnsupportedEncodingException e1) {
 			// TODO Auto-generated catch block
@@ -56,7 +83,7 @@ public class MorpController {
 				e.printStackTrace();
 			}
 		}
-		return "redirect:/morp/reqMorp.do?type="+type+"&data="+data;
+		return "redirect:/morp/reqMorp.do?type="+type+"&data="+data;*/
 	}
 	
 	@RequestMapping("/reqText1.do")
