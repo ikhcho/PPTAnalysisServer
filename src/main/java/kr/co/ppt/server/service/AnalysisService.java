@@ -360,30 +360,31 @@ public class AnalysisService {
 		JSONObject negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
 		JSONArray prodicArr = dService.selectProDicMongo(comName, newsCode);
 		JSONArray pro2dicArr = dService.selectPro2DicMongo(comName, newsCode);
+		JSONArray stockArr = sService.selectStock(comName);
 		switch (anaCode) {
 		case "opi1":
-			analysis = new OpiAnalysis(posJson, negJson);
+			analysis = new OpiAnalysis(posJson, negJson,stockArr);
 			break;
 		case "opi2":
-			analysis = new OpiAnalysis2(posJson, negJson);
+			analysis = new OpiAnalysis2(posJson, negJson,stockArr);
 			break;
 		case "pro1":
-			analysis = new ProAnalysis(prodicArr);
+			analysis = new ProAnalysis(prodicArr,stockArr);
 			break;
 		case "pro2":
-			analysis = new ProAnalysis(pro2dicArr);
+			analysis = new ProAnalysis(pro2dicArr,stockArr);
 			break;
 		case "fit1":
-			analysis = new FilteredAnalysis(prodicArr, getTfidfMap(comName, newsCode, anaCode));
+			analysis = new FilteredAnalysis(prodicArr, stockArr, getTfidfMap(comName, newsCode, anaCode));
 			break;
 		case "fit2":
-			analysis = new FilteredAnalysis(pro2dicArr, getTfidfMap(comName, newsCode, anaCode));
+			analysis = new FilteredAnalysis(pro2dicArr, stockArr, getTfidfMap(comName, newsCode, anaCode));
 			break;
 		case "meg1":
-			analysis = new MergeAnalysis(posJson, negJson, prodicArr, getTfidfMap(comName, newsCode, anaCode));
+			analysis = new MergeAnalysis(posJson, negJson, prodicArr, stockArr, getTfidfMap(comName, newsCode, anaCode));
 			break;
 		case "meg2":
-			analysis = new MergeAnalysis(posJson, negJson, pro2dicArr, getTfidfMap(comName, newsCode, anaCode));
+			analysis = new MergeAnalysis(posJson, negJson, pro2dicArr, stockArr, getTfidfMap(comName, newsCode, anaCode));
 			break;
 		}
 		JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
