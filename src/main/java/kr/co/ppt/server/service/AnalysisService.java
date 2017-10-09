@@ -185,7 +185,6 @@ public class AnalysisService {
 			JSONArray prodicArr = dService.selectProDicMongo(comName, newsCode);
 			JSONArray pro2dicArr = dService.selectPro2DicMongo(comName, newsCode);
 			for(String anaCode : anaCodes){
-				Map<String,String> map = new HashMap<>();
 				switch(anaCode){
 					case "opi1":
 						analysis = new OpiAnalysis(posJson,negJson);
@@ -215,16 +214,22 @@ public class AnalysisService {
 				
 				JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
 				analysis.setTreeArr(treeArr);
+				JSONObject obj = new JSONObject();
 				
-				map.put("comNo", String.valueOf(companyVO.getNo()));
-				map.put("comName", comName);
-				map.put("anaCode", anaCode);
-				map.put("newsCode", newsCode);
-				map.put("todayFluc", analysis.todayAnalyze(morpVO));
-				map.put("tomorrowFluc", analysis.tomorrowAnalyze(morpVO));
-				JSONObject obj = new JSONObject(map);
+				obj.put("comNo", String.valueOf(companyVO.getNo()));
+				obj.put("comName", comName);
+				obj.put("anaCode", anaCode);
+				obj.put("newsCode", newsCode);
+				obj.put("todayFluc", analysis.todayAnalyze(morpVO));
+				obj.put("todayInc", analysis.getInc());
+				obj.put("todayDec", analysis.getDec());
+				obj.put("todayEqu", analysis.getEqu());
+				obj.put("tomorrowFluc", analysis.tomorrowAnalyze(morpVO));
+				obj.put("tomorrowInc", analysis.getInc());
+				obj.put("tomorrowDec", analysis.getDec());
+				obj.put("tomorrowEqu", analysis.getEqu());
 				array.add(obj);
-				System.out.println(map.toString());
+				System.out.println(obj.toString());
 			}
 		}
 		System.out.println("RTA 끝");
@@ -244,7 +249,6 @@ public class AnalysisService {
 			JSONArray prodicArr = new ProDicVO(newsCode, comName).getProdicArr();
 			JSONArray pro2dicArr = new ProDicVO(newsCode, comName+"2").getProdicArr();
 			for(String anaCode : anaCodes){
-				Map<String,String> map = new HashMap<>();
 				switch(anaCode){
 					case "opi1":
 						analysis = new OpiAnalysis(posJson,negJson);
@@ -274,20 +278,176 @@ public class AnalysisService {
 				
 				JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
 				analysis.setTreeArr(treeArr);
+				JSONObject obj = new JSONObject();
 				
-				map.put("comNo", String.valueOf(companyVO.getNo()));
-				map.put("comName", comName);
-				map.put("anaCode", anaCode);
-				map.put("newsCode", newsCode);
-				map.put("todayFluc", analysis.todayAnalyze(morpVO));
-				map.put("tomorrowFluc", analysis.tomorrowAnalyze(morpVO));
-				JSONObject obj = new JSONObject(map);
+				obj.put("comNo", String.valueOf(companyVO.getNo()));
+				obj.put("comName", comName);
+				obj.put("anaCode", anaCode);
+				obj.put("newsCode", newsCode);
+				obj.put("todayFluc", analysis.todayAnalyze(morpVO));
+				obj.put("todayInc", analysis.getInc());
+				obj.put("todayDec", analysis.getDec());
+				obj.put("todayEqu", analysis.getEqu());
+				obj.put("tomorrowFluc", analysis.tomorrowAnalyze(morpVO));
+				obj.put("tomorrowInc", analysis.getInc());
+				obj.put("tomorrowDec", analysis.getDec());
+				obj.put("tomorrowEqu", analysis.getEqu());
 				array.add(obj);
-				System.out.println(map.toString());
+				System.out.println(obj.toString());
 			}
 		}
 		System.out.println("RTA 끝");
 		return array;
+	}
+	
+	public JSONObject myAnalyze(String predicDate,String comName, String newsCode, String anaCode, JSONArray userDic){
+		NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+predicDate+".json");
+		Analysis analysis = null;
+		JSONObject posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);;
+		JSONObject negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+		JSONArray prodicArr = dService.selectProDicMongo(comName, newsCode);
+		JSONArray pro2dicArr = dService.selectPro2DicMongo(comName, newsCode);
+		switch (anaCode) {
+			case "opi1":
+				analysis = new OpiAnalysis(posJson, negJson);
+				break;
+			case "opi2":
+				analysis = new OpiAnalysis2(posJson, negJson);
+				break;
+			case "pro1":
+				analysis = new ProAnalysis(prodicArr);
+				break;
+			case "pro2":
+				analysis = new ProAnalysis(pro2dicArr);
+				break;
+			case "fit1":
+				analysis = new FilteredAnalysis(prodicArr, getTfidfMap(comName, newsCode, anaCode));
+				break;
+			case "fit2":
+				analysis = new FilteredAnalysis(pro2dicArr, getTfidfMap(comName, newsCode, anaCode));
+				break;
+			case "meg1":
+				analysis = new MergeAnalysis(posJson, negJson, prodicArr, getTfidfMap(comName, newsCode, anaCode));
+				break;
+			case "meg2":
+				analysis = new MergeAnalysis(posJson, negJson, pro2dicArr, getTfidfMap(comName, newsCode, anaCode));
+				break;
+		}
+		JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
+		analysis.setTreeArr(treeArr);
+		analysis.setUserDic(userDic);
+		JSONObject obj = new JSONObject();
+
+		obj.put("comName", comName);
+		obj.put("anaCode", anaCode);
+		obj.put("newsCode", newsCode);
+		obj.put("todayFluc", analysis.todayAnalyze(morpVO));
+		obj.put("todayInc", analysis.getInc());
+		obj.put("todayDec", analysis.getDec());
+		obj.put("todayEqu", analysis.getEqu());
+		obj.put("tomorrowFluc", analysis.tomorrowAnalyze(morpVO));
+		obj.put("tomorrowInc", analysis.getInc());
+		obj.put("tomorrowDec", analysis.getDec());
+		obj.put("tomorrowEqu", analysis.getEqu());
+		System.out.println(obj.toString());
+		
+		return obj;
+	}
+	
+	public String myAnalyzeForRel(String predicDate,String comName, String newsCode, String anaCode, JSONArray userDic, String[] dateRange){
+		Analysis analysis = null;
+		JSONObject posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);;
+		JSONObject negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
+		JSONArray prodicArr = dService.selectProDicMongo(comName, newsCode);
+		JSONArray pro2dicArr = dService.selectPro2DicMongo(comName, newsCode);
+		switch (anaCode) {
+		case "opi1":
+			analysis = new OpiAnalysis(posJson, negJson);
+			break;
+		case "opi2":
+			analysis = new OpiAnalysis2(posJson, negJson);
+			break;
+		case "pro1":
+			analysis = new ProAnalysis(prodicArr);
+			break;
+		case "pro2":
+			analysis = new ProAnalysis(pro2dicArr);
+			break;
+		case "fit1":
+			analysis = new FilteredAnalysis(prodicArr, getTfidfMap(comName, newsCode, anaCode));
+			break;
+		case "fit2":
+			analysis = new FilteredAnalysis(pro2dicArr, getTfidfMap(comName, newsCode, anaCode));
+			break;
+		case "meg1":
+			analysis = new MergeAnalysis(posJson, negJson, prodicArr, getTfidfMap(comName, newsCode, anaCode));
+			break;
+		case "meg2":
+			analysis = new MergeAnalysis(posJson, negJson, pro2dicArr, getTfidfMap(comName, newsCode, anaCode));
+			break;
+		}
+		JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
+		analysis.setTreeArr(treeArr);
+		analysis.setUserDic(userDic);
+		for(String date : dateRange){
+			NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+date+".json");
+			String predict = analysis.trainAnalyze(morpVO);
+		}
+		
+		return String.valueOf(analysis.getSuccess()*100 / analysis.getPredictCnt());
+	}
+	
+	public JSONObject myAnalyzeWithFile(String predicDate,String comName, String newsCode, String anaCode, JSONArray userDic){
+		NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+predicDate+".json");
+		Analysis analysis = null;
+		JSONObject posJson = new OpiDicVO(newsCode, comName, "pos").getOpiDic();
+		JSONObject negJson = new OpiDicVO(newsCode, comName, "neg").getOpiDic();
+		JSONArray prodicArr = new ProDicVO(newsCode, comName).getProdicArr();
+		JSONArray pro2dicArr = new ProDicVO(newsCode, comName + "2").getProdicArr();
+		switch (anaCode) {
+			case "opi1":
+				analysis = new OpiAnalysis(posJson, negJson);
+				break;
+			case "opi2":
+				analysis = new OpiAnalysis2(posJson, negJson);
+				break;
+			case "pro1":
+				analysis = new ProAnalysis(prodicArr);
+				break;
+			case "pro2":
+				analysis = new ProAnalysis(pro2dicArr);
+				break;
+			case "fit1":
+				analysis = new FilteredAnalysis(prodicArr, getTfidfMap(comName, newsCode, anaCode));
+				break;
+			case "fit2":
+				analysis = new FilteredAnalysis(pro2dicArr, getTfidfMap(comName, newsCode, anaCode));
+				break;
+			case "meg1":
+				analysis = new MergeAnalysis(posJson, negJson, prodicArr, getTfidfMap(comName, newsCode, anaCode));
+				break;
+			case "meg2":
+				analysis = new MergeAnalysis(posJson, negJson, pro2dicArr, getTfidfMap(comName, newsCode, anaCode));
+				break;
+		}
+		JSONArray treeArr = dTreeService.selectDtree(comName, newsCode, anaCode);
+		analysis.setTreeArr(treeArr);
+		analysis.setUserDic(userDic);
+		JSONObject obj = new JSONObject();
+
+		obj.put("comName", comName);
+		obj.put("anaCode", anaCode);
+		obj.put("newsCode", newsCode);
+		obj.put("todayFluc", analysis.todayAnalyze(morpVO));
+		obj.put("todayInc", analysis.getInc());
+		obj.put("todayDec", analysis.getDec());
+		obj.put("todayEqu", analysis.getEqu());
+		obj.put("tomorrowFluc", analysis.tomorrowAnalyze(morpVO));
+		obj.put("tomorrowInc", analysis.getInc());
+		obj.put("tomorrowDec", analysis.getDec());
+		obj.put("tomorrowEqu", analysis.getEqu());
+		System.out.println(obj.toString());
+		return obj;
 	}
 	
 	public String dTreeAnalyze(String comName, String newsCode, String anaCode, String[] dateRange){
@@ -502,7 +662,13 @@ public class AnalysisService {
 			map.put("anaCode", obj.get("anaCode"));
 			map.put("newsCode", obj.get("newsCode"));
 			map.put("todayFluc", obj.get("todayFluc"));
+			map.put("todayInc", obj.get("todayInc"));
+			map.put("todayDec", obj.get("todayDec"));
+			map.put("todayEqu", obj.get("todayEqu"));
 			map.put("tomorrowFluc", obj.get("tomorrowFluc"));
+			map.put("tomorrowInc", obj.get("tomorrowInc"));
+			map.put("tomorrowDec", obj.get("tomorrowDec"));
+			map.put("tomorrowEqu", obj.get("tomorrowEqu"));
 			aDAO.insertRTA(map);
 		}
 	}
@@ -516,8 +682,20 @@ public class AnalysisService {
 			map.put("anaCode", obj.get("anaCode"));
 			map.put("newsCode", obj.get("newsCode"));
 			map.put("todayFluc", obj.get("todayFluc"));
+			map.put("todayInc", obj.get("todayInc"));
+			map.put("todayDec", obj.get("todayDec"));
+			map.put("todayEqu", obj.get("todayEqu"));
 			map.put("tomorrowFluc", obj.get("tomorrowFluc"));
+			map.put("tomorrowInc", obj.get("tomorrowInc"));
+			map.put("tomorrowDec", obj.get("tomorrowDec"));
+			map.put("tomorrowEqu", obj.get("tomorrowEqu"));
 			aDAO.updateRTA(map);
+		}
+	}
+	public void updateYesterdayRTA(String newsCode){
+		List<RTAVO> list = selectAllRTA(newsCode);
+		for(RTAVO rtaVO : list){
+			aDAO.updateYesterdayRTA(rtaVO);
 		}
 	}
 	
@@ -553,5 +731,91 @@ public class AnalysisService {
 			arr.add(obj);
 		}
 		return arr;
+	}
+	
+	public RTAVO selectRTA(String newsCode){
+		return aDAO.selectRTA(newsCode);
+	}
+	public List<RTAVO> selectAllRTA(String newsCode){
+		return aDAO.selectAllRTA(newsCode);
+	}
+	
+	//MY
+	public void insertMyAnalysis(JSONObject obj){
+		Map<Object, Object> map = new HashMap<>();
+		map.put("userNo", obj.get("userNo"));
+		map.put("dicName", obj.get("dicName"));
+		map.put("comName", obj.get("comName"));
+		map.put("anaCode", obj.get("anaCode"));
+		map.put("newsCode", obj.get("newsCode"));
+		map.put("todayFluc", obj.get("todayFluc"));
+		map.put("todayInc", obj.get("todayInc"));
+		map.put("todayDec", obj.get("todayDec"));
+		map.put("todayEqu", obj.get("todayEqu"));
+		map.put("tomorrowFluc", obj.get("tomorrowFluc"));
+		map.put("tomorrowInc", obj.get("tomorrowInc"));
+		map.put("tomorrowDec", obj.get("tomorrowDec"));
+		map.put("tomorrowEqu", obj.get("tomorrowEqu"));
+		aDAO.insertMyAnalysis(map);
+	}
+	
+	public void updateMyAnalysis(JSONObject obj){
+		Map<Object, Object> map = new HashMap<>();
+		map.put("userNo", obj.get("userNo"));
+		map.put("dicName", obj.get("dicName"));
+		map.put("comName", obj.get("comName"));
+		map.put("anaCode", obj.get("anaCode"));
+		map.put("newsCode", obj.get("newsCode"));
+		map.put("todayFluc", obj.get("todayFluc"));
+		map.put("todayInc", obj.get("todayInc"));
+		map.put("todayDec", obj.get("todayDec"));
+		map.put("todayEqu", obj.get("todayEqu"));
+		map.put("tomorrowFluc", obj.get("tomorrowFluc"));
+		map.put("tomorrowInc", obj.get("tomorrowInc"));
+		map.put("tomorrowDec", obj.get("tomorrowDec"));
+		map.put("tomorrowEqu", obj.get("tomorrowEqu"));
+		aDAO.updateMyAnalysis(map);
+	}
+	
+	public void updateYesterdayMyAnalysis(String newsCode){
+		List<RTAVO> list = aDAO.selectAllMyAnalysis(newsCode);
+		for(RTAVO rtaVO : list){
+			aDAO.updateYesterdayMyAnalysis(rtaVO);
+		}
+	}
+	
+	public RTAVO selectOneMyAnalysis(int userNo, String dicName){
+		Map<String,Object> map = new HashMap<>();
+		map.put("userNo", userNo);
+		map.put("dicName", dicName);
+		return aDAO.selectOneMyAnalysis(map);
+	}
+	
+	public void insertReliability(){
+		String text = "";
+		for(String newsCode : newsCodes){
+			FileReader fr;
+			try {
+				fr = new FileReader("D:\\PPT\\analysis\\"+newsCode+"_reliability.csv");
+				BufferedReader br = new BufferedReader(fr);
+				String[] anaCode = br.readLine().split(",");
+				while((text=br.readLine()) != null){
+					String[] anaRel = text.split(",");
+					int j =0;
+					for(int i=2; i<17; i+=2){
+						Map<Object,Object> map = new HashMap<>();
+						map.put("comName", anaRel[0]);
+						map.put("anaCode", anaCode[i].substring(0, 4));
+						map.put("newsCode", newsCode);
+						map.put("value", Integer.parseInt(anaRel[i]));
+						aDAO.insertReliability(map);
+					}
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println(newsCode+"끝");
+		}
 	}
 }

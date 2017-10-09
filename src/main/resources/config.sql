@@ -156,7 +156,7 @@ ALTER TABLE MY_STOCK
         REFERENCES USERS (no)
 /
 
-drop TABLE RT_ANALISYS
+drop SEQUENCE RT_ANALISYS_SEQ
 -- RT_ANALISYS Table Create SQL
 CREATE TABLE RT_ANALISYS
 (
@@ -164,8 +164,15 @@ CREATE TABLE RT_ANALISYS
     com_no           NUMBER          NOT NULL, 
     ana_code         VARCHAR2(4)     NOT NULL, 
     news_code        VARCHAR2(10)    NOT NULL, 
-    today_fluc       CHAR(1)         NOT NULL, 
+    yesterday_fluc   CHAR(1)         NULL, 
+    today_fluc       CHAR(1)         NULL, 
+    today_inc        NUMBER          NULL, 
+    today_dec        NUMBER          NULL, 
+    today_equ        NUMBER          NULL, 
     tomorrow_fluc    CHAR(1)         NOT NULL,
+    tomorrow_inc    NUMBER          NULL,
+    tomorrow_dec    NUMBER          NULL,
+    tomorrow_equ    NUMBER          NULL,
     reg_date		date			NOT NULL,
     CONSTRAINT RT_ANALISYS_PK PRIMARY KEY (no)
 )
@@ -186,40 +193,6 @@ ALTER TABLE RT_ANALISYS
         REFERENCES NEWS_CATEGORY (code)
 /
 
--- MY_ANALISYS Table Create SQL
-CREATE TABLE MY_ANALISYS
-(
-    NO           NUMBER         NOT NULL, 
-    user_no      NUMBER         NOT NULL, 
-    my_dic_no    NUMBER         NOT NULL, 
-    ana_code     VARCHAR2(4)    NOT NULL, 
-    name         VARCHAR(30)    NOT NULL, 
-    reg_date     DATE           NOT NULL, 
-    CONSTRAINT MY_ANALISYS_PK PRIMARY KEY (NO)
-)
-/
-
-CREATE SEQUENCE MY_ANALISYS_SEQ
-START WITH 1
-INCREMENT BY 1
-NOCACHE;
-/
-
-ALTER TABLE MY_ANALISYS
-    ADD CONSTRAINT FK_MY_ANALISYS_user_no_USERS_n FOREIGN KEY (user_no)
-        REFERENCES USERS (no)
-/
-
-ALTER TABLE MY_ANALISYS
-    ADD CONSTRAINT FK_MY_ANALISYS_my_dic_no_MY_DI FOREIGN KEY (my_dic_no)
-        REFERENCES MY_DICTIONARY (NO)
-/
-
-ALTER TABLE MY_ANALISYS
-    ADD CONSTRAINT FK_MY_ANALISYS_ana_code_ANA_CA FOREIGN KEY (ana_code)
-        REFERENCES ANA_CATEGORY (code)
-/
-
 -- LINK Table Create SQL
 CREATE TABLE LINK
 (
@@ -236,6 +209,95 @@ INCREMENT BY 1
 NOCACHE;
 /
 
+drop SEQUENCE ANA_RELIABILITY_SEQ
+-- ANA_RELIABILITY Table Create SQL
+CREATE TABLE ANA_RELIABILITY
+(
+    NO          INT             NOT NULL, 
+    com_name    VARCHAR2(40)    NOT NULL, 
+    ana_code    VARCHAR2(4)          NOT  NULL, 
+    news_code    VARCHAR2(10)          NOT  NULL, 
+    value       NUMBER          NOT NULL, 
+    CONSTRAINT ANA_RELIABILITY_PK PRIMARY KEY (NO)
+)
+/
+
+CREATE SEQUENCE ANA_RELIABILITY_SEQ
+START WITH 1
+INCREMENT BY 1;
+/
+
+
+ALTER TABLE ANA_RELIABILITY
+    ADD CONSTRAINT FK_ANA_RELIABILITY_com_name_CO FOREIGN KEY (com_name)
+        REFERENCES COMPANY (name)
+/
+
+ALTER TABLE ANA_RELIABILITY
+    ADD CONSTRAINT FK_ANA_RELIABILITY_ana_code_AN FOREIGN KEY (ana_code)
+        REFERENCES ANA_CATEGORY (code)
+        
+ALTER TABLE ANA_RELIABILITY
+    ADD CONSTRAINT FK_ANA_RELIABIL_news_code_AN FOREIGN KEY (news_code)
+        REFERENCES NEWS_CATEGORY (code)
+/
+drop TABLE NEWS_COUNT
+-- NEWS_COUNT Table Create SQL
+CREATE TABLE NEWS_COUNT
+(
+    NO           NUMBER          NOT NULL, 
+    news_code    VARCHAR2(10)    NOT NULL, 
+    today        NUMBER          NULL, 
+    total        NUMBER          NOT NULL, 
+    CONSTRAINT NEWS_COUNT_PK PRIMARY KEY (NO)
+)
+/
+
+CREATE SEQUENCE NEWS_COUNT_SEQ
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+/
+
+ALTER TABLE NEWS_COUNT
+    ADD CONSTRAINT FK_NEWS_COUNT_news_code_NEWS_C FOREIGN KEY (news_code)
+        REFERENCES NEWS_CATEGORY (code)
+/
+CREATE TABLE MY_ANALISYS
+(
+    no               NUMBER          NOT NULL, 
+    user_no           NUMBER          NOT NULL, 
+    dic_name         VARCHAR2(100)     NOT NULL, 
+    com_name         VARCHAR2(40)     NOT NULL, 
+    ana_code         VARCHAR2(4)     NOT NULL, 
+    news_code        VARCHAR2(10)    NOT NULL, 
+    yesterday_fluc   CHAR(1)         NULL, 
+    today_fluc       CHAR(1)         NULL, 
+    today_inc        NUMBER          NULL, 
+    today_dec        NUMBER          NULL, 
+    today_equ        NUMBER          NULL, 
+    tomorrow_fluc    CHAR(1)         NOT NULL,
+    tomorrow_inc    NUMBER          NULL,
+    tomorrow_dec    NUMBER          NULL,
+    tomorrow_equ    NUMBER          NULL,
+    reg_date		date			NOT NULL,
+    CONSTRAINT MY_ANALISYS_PK PRIMARY KEY (no)
+)
+/
+
+CREATE SEQUENCE MY_ANALISYS_SEQ
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+/
+ALTER TABLE MY_ANALISYS
+    ADD CONSTRAINT FK_MY_ANALISYS_ana_code_ANA_CA FOREIGN KEY (ana_code)
+        REFERENCES ANA_CATEGORY (code)
+/
+
+ALTER TABLE MY_ANALISYS
+    ADD CONSTRAINT FK_MY_ANALISYS_news_code_NEWS_ FOREIGN KEY (news_code)
+        REFERENCES NEWS_CATEGORY (code)
 //////////////////////////////////////////////////////////////////////////////
 select stock.no, com_no as comNo, open_date as openDate, open, close, high, low, volume, fluc_state as flucState, raise, rate
 from stock, (select no from company where name='AK홀딩스') company where stock.com_no = company.no

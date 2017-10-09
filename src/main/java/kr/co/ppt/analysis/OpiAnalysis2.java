@@ -25,6 +25,7 @@ public class OpiAnalysis2 implements Analysis{
 	private int posScore=0;
 	private int negScore=0;
 	private int predictCnt=0;
+	private JSONArray userDic = null;
 	
 	public OpiAnalysis2(JSONObject posJson, JSONObject negJson) {
 		this.posJson = posJson;
@@ -38,7 +39,19 @@ public class OpiAnalysis2 implements Analysis{
 		this.stockArr = stockArr;
 		this.treeArr = treeArr;
 	}
-	private void analyze(Iterator<String> iter){
+	private void analyze(Set<String> NewsMorpSet){
+		if(userDic != null){
+			Set<String> tmpSet = new HashSet<String>();
+			for(int i=0; i<userDic.size(); i++){
+				JSONObject userTerm = (JSONObject) userDic.get(i);
+				String key = (String) userTerm.get("term");
+				if (NewsMorpSet.contains(key)) {
+					tmpSet.add(key);
+				}
+			}
+			NewsMorpSet = tmpSet;
+		}
+		Iterator<String> iter = NewsMorpSet.iterator();
 		while (iter.hasNext()) {
 			String key = iter.next();
 			if(posJson.containsKey(key))
@@ -63,8 +76,7 @@ public class OpiAnalysis2 implements Analysis{
 				NewsMorpSet.addAll(morp.getAppend().keySet());
 				NewsMorpSet.addAll(new NewsMorpVO("D:\\PPT\\mining\\"+morp.getCategory()+Tool.getDate(morp.getNewsDate(), 1)+".json").getPrev().keySet());
 			}
-			Iterator<String> iter = NewsMorpSet.iterator();
-			analyze(iter);
+			analyze(NewsMorpSet);
 			String flucState="";
 			for (int i = 0; i < stockArr.size(); i++) {
 				JSONObject stock = (JSONObject) stockArr.get(i);
@@ -101,8 +113,7 @@ public class OpiAnalysis2 implements Analysis{
 					"D:\\PPT\\mining\\" + morp.getCategory() + Tool.getDate(morp.getNewsDate(), -1) + ".json").getAppend()
 							.keySet());
 		}
-		Iterator<String> iter = NewsMorpSet.iterator();
-		analyze(iter);
+		analyze(NewsMorpSet);
 		
 		return predict();
 	}
@@ -115,8 +126,7 @@ public class OpiAnalysis2 implements Analysis{
 		if(NewsMorpSet.isEmpty()){
 			NewsMorpSet.addAll(morpVO.getPrev().keySet());
 		}
-		Iterator<String> iter = NewsMorpSet.iterator();
-		analyze(iter);
+		analyze(NewsMorpSet);
 		
 		return predict();
 	}
@@ -125,8 +135,7 @@ public class OpiAnalysis2 implements Analysis{
 	public String userReqAnalyze(MorpVO morpVO) {
 		posScore=0;
 		negScore=0;
-		Iterator<String> iter = morpVO.getMorp().keySet().iterator();
-		analyze(iter);
+		analyze(morpVO.getMorp().keySet());
 		return predict();
 	}
 	
@@ -150,6 +159,29 @@ public class OpiAnalysis2 implements Analysis{
 	}
 	
 	@Override
+	public double getInc() {
+		double total = posScore + negScore;
+		if(total==0)
+			return 0;
+		else
+			return posScore/total;
+	}
+
+	@Override
+	public double getDec() {
+		double total = posScore + negScore;
+		if(total==0)
+			return 0;
+		else
+			return negScore/total;
+	}
+
+	@Override
+	public double getEqu() {
+		return 0;
+	}
+	
+	@Override
 	public int getSuccess() {
 		return success;
 	}
@@ -162,5 +194,10 @@ public class OpiAnalysis2 implements Analysis{
 	@Override
 	public void setTreeArr(JSONArray treeArr) {
 		this.treeArr = treeArr;
+	}
+	
+	@Override
+	public void setUserDic(JSONArray userDic) {
+		this.userDic = userDic;
 	}
 }

@@ -9,7 +9,7 @@ public class RTAVO {
 	private String newsCode;
 	private String todayFluc;
 	private String tomorrowFluc;
-	private Date regDate;
+	private String regDate;
 	public int getNo() {
 		return no;
 	}
@@ -46,10 +46,10 @@ public class RTAVO {
 	public void setTomorrowFluc(String tomorrowFluc) {
 		this.tomorrowFluc = tomorrowFluc;
 	}
-	public Date getRegDate() {
+	public String getRegDate() {
 		return regDate;
 	}
-	public void setRegDate(Date regDate) {
+	public void setRegDate(String regDate) {
 		this.regDate = regDate;
 	}
 	

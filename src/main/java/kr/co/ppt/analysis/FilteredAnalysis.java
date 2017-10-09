@@ -30,7 +30,7 @@ public class FilteredAnalysis implements Analysis{
 	private double equScore=0;
 	private int success = 0;
 	private int predictCnt=0;
-	
+	private JSONArray userDic = null;
 	
 	public FilteredAnalysis(JSONArray prodicArr, Map<String,Double> tfidfMap) {
 		this.prodicArr = prodicArr;
@@ -49,6 +49,17 @@ public class FilteredAnalysis implements Analysis{
 			String key = iter.next();
 			if(tfidfMap.containsKey(key))
 				equalTerm.put(key,tfidfMap.get(key));
+		}
+		if(userDic != null){
+			Map<String, Double> tmpMap = new HashMap<String, Double>();
+			for(int i=0; i<userDic.size(); i++){
+				JSONObject userTerm = (JSONObject) userDic.get(i);
+				String key = (String) userTerm.get("term");
+				if (equalTerm.containsKey(key)) {
+					tmpMap.put(key, equalTerm.get(key));
+				}
+			}
+			equalTerm = tmpMap;
 		}
 		for (int i = 0; i < prodicArr.size(); i++) {
 			JSONObject prodic = (JSONObject) prodicArr.get(i);
@@ -162,7 +173,32 @@ public class FilteredAnalysis implements Analysis{
 		}
 		return flucState;
 	}
-	
+	@Override
+	public double getInc() {
+		double total = incScore + decScore + equScore;
+		if(total==0)
+			return 0;
+		else
+			return incScore/total;
+	}
+
+	@Override
+	public double getDec() {
+		double total = incScore + decScore + equScore;
+		if(total==0)
+			return 0;
+		else
+			return decScore/total;
+	}
+
+	@Override
+	public double getEqu() {
+		double total = incScore + decScore + equScore;
+		if(total==0)
+			return 0;
+		else
+			return equScore/total;
+	}
 	@Override
 	public int getSuccess() {
 		return success;
@@ -177,6 +213,14 @@ public class FilteredAnalysis implements Analysis{
 	public void setTreeArr(JSONArray treeArr) {
 		this.treeArr = treeArr;
 	}
+	
+	@Override
+	public void setUserDic(JSONArray userDic) {
+		this.userDic = userDic;
+	}
 
-
+	
+	
+	
+	
 }

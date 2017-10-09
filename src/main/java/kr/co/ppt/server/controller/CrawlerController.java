@@ -34,6 +34,12 @@ public class CrawlerController {
 		return "끝";
 	}
 	
+	@RequestMapping("insertTotalNewsCnt.do")
+	@ResponseBody
+	public String insertTotalNewsCnt(String newsCode){
+		cService.insertTotalNewsCnt(newsCode);
+		return "끝";
+	}
 	
 	@RequestMapping("recentNews.do")
 	@ResponseBody

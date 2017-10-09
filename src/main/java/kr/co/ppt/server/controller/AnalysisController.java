@@ -1,10 +1,15 @@
 package kr.co.ppt.server.controller;
 
 import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,6 +36,44 @@ public class AnalysisController {
 	StockService sService;
 	@Autowired
 	DictionaryService dService;
+	
+	@RequestMapping("/getReliability.do")
+	@ResponseBody
+	public String getReliability(String comName, String newsCode, String anaCode,String userDic){
+		String reliability = "";
+		String from = "20170701";
+		String to = "20170831";
+		String[] dateRange = Tool.dateRange(from, to);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+		String today = sdf.format(new Date());
+		JSONParser parser = new JSONParser();
+		JSONArray userDicArr;
+		try {
+			userDicArr = (JSONArray)parser.parse(userDic);
+			reliability = aService.myAnalyzeForRel(today, comName, newsCode, anaCode, userDicArr,dateRange);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return reliability;
+	}
+
+	@RequestMapping("/insertUserDic.do")
+	@ResponseBody
+	public String insertUserDic(String comName, String newsCode, String anaCode,String userDic){
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+		String today = sdf.format(new Date());
+		JSONParser parser = new JSONParser();
+		JSONArray userDicArr;
+		try {
+			userDicArr = (JSONArray)parser.parse(userDic);
+			aService.insertMyAnalysis(aService.myAnalyze(today, comName, newsCode, anaCode, userDicArr));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "완료";
+	}
 	
 	@RequestMapping("/RTA.do")
 	@ResponseBody
@@ -75,9 +118,18 @@ public class AnalysisController {
 	@RequestMapping("/realtimeAnalyze.do")
 	@ResponseBody
 	public String analyze(String predicDate, String newsCode){
-		aService.insertRTA(aService.realtimeAnalyze(predicDate, newsCode));
+		aService.insertRTA(aService.realtimeAnalyzeWithFile(predicDate, newsCode));
 		return  "끝";
 	}
+	
+	@RequestMapping("/insertReliability.do")
+	@ResponseBody
+	public String insertReliability(){
+		aService.insertReliability();
+		return "끝";
+	}
+	
+	
 	
 	@RequestMapping("/fit.do")
 	public String tfidf(Model model, String newsCode){
@@ -142,7 +194,7 @@ public class AnalysisController {
 		String to = "20170831";
 		String[] dateRange = Tool.dateRange(from, to);
 		String[] anaCodes = {"opi1","opi2","pro1","pro2","fit1","fit2","meg1","meg2"};
-		String path = "D:\\PPT\\analysis\\"+newsCode+"_responsibility.csv";
+		String path = "D:\\PPT\\analysis\\"+newsCode+"_reliability.csv";
 		FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(path);

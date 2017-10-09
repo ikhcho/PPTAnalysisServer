@@ -27,6 +27,7 @@ public class ProAnalysis implements Analysis{
 	private double equScore=0;
 	private int success = 0;
 	private int predictCnt=0;
+	private JSONArray userDic = null;
 	
 	public ProAnalysis(JSONArray prodicArr) {
 		this.prodicArr = prodicArr;
@@ -39,6 +40,17 @@ public class ProAnalysis implements Analysis{
 	}
 
 	private void analyze(Set<String> NewsMorpSet){
+		if(userDic != null){
+			Set<String> tmpSet = new HashSet<String>();
+			for(int i=0; i<userDic.size(); i++){
+				JSONObject userTerm = (JSONObject) userDic.get(i);
+				String key = (String) userTerm.get("term");
+				if (NewsMorpSet.contains(key)) {
+					tmpSet.add(key);
+				}
+			}
+			NewsMorpSet = tmpSet;
+		}
 		for (int i = 0; i < prodicArr.size(); i++) {
 			JSONObject prodic = (JSONObject) prodicArr.get(i);
 			String key = (String) prodic.get("word");
@@ -148,6 +160,33 @@ public class ProAnalysis implements Analysis{
 		}
 		return flucState;
 	}
+	
+	@Override
+	public double getInc() {
+		double total = incScore + decScore + equScore;
+		if(total==0)
+			return 0;
+		else
+			return incScore/total;
+	}
+
+	@Override
+	public double getDec() {
+		double total = incScore + decScore + equScore;
+		if(total==0)
+			return 0;
+		else
+			return decScore/total;
+	}
+
+	@Override
+	public double getEqu() {
+		double total = incScore + decScore + equScore;
+		if(total==0)
+			return 0;
+		else
+			return equScore/total;
+	}
 
 	@Override
 	public int getSuccess() {
@@ -161,5 +200,10 @@ public class ProAnalysis implements Analysis{
 	@Override
 	public void setTreeArr(JSONArray treeArr) {
 		this.treeArr = treeArr;
+	}
+	
+	@Override
+	public void setUserDic(JSONArray userDic) {
+		this.userDic = userDic;
 	}
 }

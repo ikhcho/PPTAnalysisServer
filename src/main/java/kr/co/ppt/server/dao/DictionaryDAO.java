@@ -1,5 +1,6 @@
 package kr.co.ppt.server.dao;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -96,6 +97,24 @@ public class DictionaryDAO {
 			}
 		}
 		return map;
+	}
+	
+	public List<JSONObject> selectMyDic(Bson query){
+		List<JSONObject> list = new ArrayList<>();
+		collection = jsonReader.DB.getCollection("USER_DIC");
+		MongoCursor<Document> cursor = collection.find(query).iterator();
+		while(cursor.hasNext()){
+			Document dom = cursor.next();
+			JSONObject obj = new JSONObject();
+			obj.put("userNo", dom.get("userNo"));
+			obj.put("comName", dom.get("comName"));
+			obj.put("newsCode", dom.get("newsCode"));
+			obj.put("anaCode", dom.get("anaCode"));
+			obj.put("dicName", dom.get("dicName"));
+			obj.put("dictionary", dom.get("dictionary"));
+			list.add(obj);
+		}
+		return list;
 	}
 	
 	//=======================Connect to Oracle================================//

@@ -12,8 +12,12 @@ public interface Analysis {
 	public String tomorrowAnalyze(NewsMorpVO morpVO);
 	public String userReqAnalyze(MorpVO morpVO);
 	public String predict();
+	public double getInc();
+	public double getDec();
+	public double getEqu();
 	public int getSuccess();
 	public int getPredictCnt();
 	public void setTreeArr(JSONArray dtree);
+	public void setUserDic(JSONArray userDic);
 }
 

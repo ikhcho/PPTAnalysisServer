@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="crawler">
+	<insert id="insertTotalNewsCnt" parameterType="java.util.Map">
+		insert into NEWS_COUNT(no, news_code, total) 
+		values(NEWS_COUNT_SEQ.nextVal, #{newsCode}, #{total})
+	</insert>
+	
+	<select id="selectTotalNewsCnt" parameterType="String" resultType="long">
+		select total
+		from news_count
+		where news_code = #{newsCode}
+	</select>
+	
+	<update id="updateNewsCnt" parameterType="java.util.Map">
+		update NEWS_COUNT
+		set today = #{today}
+		where news_code = #{newsCode}
+	</update>
+	
+	<update id="updateTotalNewsCnt" parameterType="java.util.Map">
+		update NEWS_COUNT
+		set total = #{total}
+		where news_code = #{newsCode}
+	</update>
+</mapper>

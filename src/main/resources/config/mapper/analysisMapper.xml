@@ -5,25 +5,79 @@
 	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="analysis">
 	<insert id="insertRTA" parameterType="java.util.Map">
-		insert into RT_ANALISYS(no, com_no, ana_code, news_code, today_fluc, tomorrow_fluc, reg_date) 
-		values(RT_ANALISYS_SEQ.nextVal, #{comNo}, #{anaCode}, #{newsCode}, #{todayFluc}, #{tomorrowFluc}, sysdate)
+		insert into RT_ANALISYS(no, com_no, ana_code, news_code, today_fluc, today_inc, today_dec, today_equ, tomorrow_fluc, tomorrow_inc, tomorrow_dec, tomorrow_equ, reg_date) 
+		values(RT_ANALISYS_SEQ.nextVal, #{comNo}, #{anaCode}, #{newsCode}, #{todayFluc}, #{todayInc}, #{todayDec}, #{todayEqu}, #{tomorrowFluc}, #{tomorrowInc}, #{tomorrowDec}, #{tomorrowEqu}, sysdate)
 	</insert>
 	
 	<update id="updateRTA" parameterType="java.util.Map">
 		update RT_ANALISYS
-		set today_fluc = #{todayFluc}, tomorrow_fluc = #{tomorrowFluc}, reg_date = sysdate
+		set today_fluc = #{todayFluc},today_inc = #{todayInc}, today_dec = #{todayDec}, today_equ = #{todayEqu},
+		tomorrow_fluc = #{tomorrowFluc}, tomorrow_inc = #{tomorrowInc}, tomorrow_dec = #{tomorrowDec}, tomorrow_equ = #{tomorrowEqu}, reg_date = sysdate
 		where com_no = #{comNo} and ana_code = #{anaCode} and news_code = #{newsCode}
 	</update>
 	
 	<select id="selectOneRTA" parameterType="String" resultType="rtaVO">
-		select RT_ANALISYS.no, company.name as comName, ana_code as anaCode, news_code as newsCode, today_fluc as todayFluc, tomorrow_fluc as tomorrowFluc, reg_date as regDate
+		select RT_ANALISYS.no, company.name as comName, ana_code as anaCode, news_code as newsCode, today_fluc as todayFluc, tomorrow_fluc as tomorrowFluc, to_char(reg_date,'yyyy-MM-dd') as regDate
 		from RT_ANALISYS, company
 		where RT_ANALISYS.com_no = company.no and company.name = #{comName}
 	</select>
 
 	<select id="selectAllRTA" resultType="rtaVO">
-		select RT_ANALISYS.no, company.name as comName, ana_code as anaCode, news_code as newsCode, today_fluc as todayFluc, tomorrow_fluc as tomorrowFluc, reg_date as regDate
+		select RT_ANALISYS.no, company.name as comName, ana_code as anaCode, news_code as newsCode, today_fluc as todayFluc, tomorrow_fluc as tomorrowFluc, to_char(reg_date,'yyyy-MM-dd') as regDate
 		from RT_ANALISYS, company
 		where RT_ANALISYS.com_no = company.no
 	</select>
+	
+	<select id="selectRTA" parameterType="String" resultType="rtaVO">
+		select news_code as newsCode, to_char(reg_date,'yyyyMMdd') as regDate
+		from RT_ANALISYS
+		where news_code = #{newsCode} and rownum=1
+	</select>
+	
+	<select id="selectTodayRTA" parameterType="String" resultType="rtaVO">
+		select no, today_fluc as todayFluc
+		from RT_ANALISYS
+		where news_code = #{newsCode}
+	</select>
+	
+	<update id="updateYesterdayRTA" parameterType="rtaVO">
+		update RT_ANALISYS
+		set yesterday_fluc = #{todayFluc}, reg_date = sysdate
+		where no= #{no}
+	</update>
+	
+	<insert id="insertMyAnalysis" parameterType="java.util.Map">
+		insert into MY_ANALISYS(no, user_no, dic_name, com_name, ana_code, news_code, today_fluc, today_inc, today_dec, today_equ, tomorrow_fluc, tomorrow_inc, tomorrow_dec, tomorrow_equ, reg_date) 
+		values(MY_ANALISYS_SEQ.nextVal, #{userNo}, #{dicName}, #{comName}, #{anaCode}, #{newsCode}, #{todayFluc}, #{todayInc}, #{todayDec}, #{todayEqu}, #{tomorrowFluc}, #{tomorrowInc}, #{tomorrowDec}, #{tomorrowEqu}, sysdate)
+	</insert>
+	
+	<update id="updateMyAnalysis" parameterType="java.util.Map">
+		update MY_ANALISYS
+		set today_fluc = #{todayFluc},today_inc = #{todayInc}, today_dec = #{todayDec}, today_equ = #{todayEqu},
+		tomorrow_fluc = #{tomorrowFluc}, tomorrow_inc = #{tomorrowInc}, tomorrow_dec = #{tomorrowDec}, tomorrow_equ = #{tomorrowEqu}, reg_date = sysdate
+		where user_no = #{userNo} and dic_name = #{dicName}
+	</update>
+	
+	<select id="selectAllMyAnalysis" parameterType="String" resultType="rtaVO">
+		select no, today_fluc as todayFluc
+		from MY_ANALISYS
+		where news_code = #{newsCode}
+	</select>
+	
+	<select id="selectOneMyAnalysis" parameterType="java.util.Map" resultType="rtaVO">
+		select no
+		from MY_ANALISYS
+		where user_no = #{userNo} and dic_name = #{dicName}
+	</select>
+	
+	<update id="updateYesterdayMyAnalysis" parameterType="rtaVO">
+		update MY_ANALISYS
+		set yesterday_fluc = #{todayFluc}, reg_date = sysdate
+		where no= #{no}
+	</update>
+	
+	<insert id="insertReliability" parameterType="java.util.Map">
+		insert into ANA_RELIABILITY(no, com_name, ana_code,news_code, value) 
+		values(ANA_RELIABILITY_SEQ.nextVal, #{comName}, #{anaCode}, #{newsCode}, #{value})
+	</insert>
 </mapper>
