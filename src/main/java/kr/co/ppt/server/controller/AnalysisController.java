@@ -67,7 +67,7 @@ public class AnalysisController {
 		JSONArray userDicArr;
 		try {
 			userDicArr = (JSONArray)parser.parse(userDic);
-			aService.insertMyAnalysis(aService.myAnalyze(today, comName, newsCode, anaCode, userDicArr));
+			aService.insertMyAnalysis(aService.myAnalyzeWithFile(today, comName, newsCode, anaCode, userDicArr));
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
