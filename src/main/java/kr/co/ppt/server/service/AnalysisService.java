@@ -356,10 +356,10 @@ public class AnalysisService {
 	
 	public String myAnalyzeForRel(String predicDate,String comName, String newsCode, String anaCode, JSONArray userDic, String[] dateRange){
 		Analysis analysis = null;
-		JSONObject posJson = dService.selectOpiDicMongo(comName, "pos", newsCode);;
-		JSONObject negJson = dService.selectOpiDicMongo(comName, "neg", newsCode);
-		JSONArray prodicArr = dService.selectProDicMongo(comName, newsCode);
-		JSONArray pro2dicArr = dService.selectPro2DicMongo(comName, newsCode);
+		JSONObject posJson = new OpiDicVO(newsCode, comName, "pos").getOpiDic();
+		JSONObject negJson = new OpiDicVO(newsCode, comName, "neg").getOpiDic();
+		JSONArray prodicArr = new ProDicVO(newsCode, comName).getProdicArr();
+		JSONArray pro2dicArr = new ProDicVO(newsCode, comName + "2").getProdicArr();
 		JSONArray stockArr = sService.selectStock(comName);
 		switch (anaCode) {
 		case "opi1":
