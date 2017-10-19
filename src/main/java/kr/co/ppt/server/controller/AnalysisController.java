@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,14 +61,17 @@ public class AnalysisController {
 
 	@RequestMapping("/insertUserDic.do")
 	@ResponseBody
-	public String insertUserDic(String comName, String newsCode, String anaCode,String userDic){
+	public String insertUserDic(int userNo, String dicName, String comName, String newsCode, String anaCode,String userDic){
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 		String today = sdf.format(new Date());
 		JSONParser parser = new JSONParser();
 		JSONArray userDicArr;
 		try {
 			userDicArr = (JSONArray)parser.parse(userDic);
-			aService.insertMyAnalysis(aService.myAnalyzeWithFile(today, comName, newsCode, anaCode, userDicArr));
+			JSONObject myObj = aService.myAnalyzeWithFile(today, comName, newsCode, anaCode, userDicArr);
+			myObj.put("userNo", userNo);
+			myObj.put("dicName", dicName);
+			aService.insertMyAnalysis(myObj);
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
