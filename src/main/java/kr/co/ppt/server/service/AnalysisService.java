@@ -750,6 +750,7 @@ public class AnalysisService {
 		map.put("comName", obj.get("comName"));
 		map.put("anaCode", obj.get("anaCode"));
 		map.put("newsCode", obj.get("newsCode"));
+		map.put("yesterdayFluc", obj.get("yesterdayFluc"));
 		map.put("todayFluc", obj.get("todayFluc"));
 		map.put("todayInc", obj.get("todayInc"));
 		map.put("todayDec", obj.get("todayDec"));

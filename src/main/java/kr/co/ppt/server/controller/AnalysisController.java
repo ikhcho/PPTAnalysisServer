@@ -64,14 +64,16 @@ public class AnalysisController {
 	public String insertUserDic(int userNo, String dicName, String comName, String newsCode, String anaCode,String userDic){
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 		String today = sdf.format(new Date());
+		String yesterday = Tool.getDate(today, -1);
 		JSONParser parser = new JSONParser();
 		JSONArray userDicArr;
 		try {
 			userDicArr = (JSONArray)parser.parse(userDic);
-			JSONObject myObj = aService.myAnalyzeWithFile(today, comName, newsCode, anaCode, userDicArr);
-			myObj.put("userNo", userNo);
-			myObj.put("dicName", dicName);
-			aService.insertMyAnalysis(myObj);
+			JSONObject yesterdayObj = aService.myAnalyzeWithFile(yesterday, comName, newsCode, anaCode, userDicArr);
+			JSONObject todayObj = aService.myAnalyzeWithFile(today, comName, newsCode, anaCode, userDicArr);
+			todayObj.put("yesterdayFluc", yesterdayObj.get("todayFluc"));
+			aService.insertMyAnalysis(todayObj);
+			
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
