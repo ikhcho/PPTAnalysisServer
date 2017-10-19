@@ -37,7 +37,6 @@ public class OpiAnalysis2 implements Analysis{
 		this.posJson = posJson;
 		this.negJson = negJson;
 		this.stockArr = stockArr;
-		this.treeArr = treeArr;
 	}
 	private void analyze(Set<String> NewsMorpSet){
 		if(userDic != null){

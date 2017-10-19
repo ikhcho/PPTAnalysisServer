@@ -32,10 +32,15 @@ from(
 	)
 )
 where rownum=1
-
-select * from MY_FAVORITE order by no
-delete from my_favorite where no> 25
-select * from MY_ANALISYS where news_code = 'digital' group by news_code 
+select * from users
+select * from MY_ANALISYS order by no
+select * from my_favorite where no> 25
+select news_code, max(yesterday_fluc) from RT_ANALISYS  group by news_code  where news_code = 'digital'
 select * from news_count
+insert into MY_FAVORITE(NO, user_no, com_no, group_name) 
+values(MY_FAVORITE_SEQ.nextVal, 2, 18, '보유주식')
 
-		
+
+select count(my2.com_no)
+from (select no, user_no, com_no from my_stock where no = 1) my1, my_stock my2
+where my1.user_no = my2.user_no and my1.com_no = my2.com_no

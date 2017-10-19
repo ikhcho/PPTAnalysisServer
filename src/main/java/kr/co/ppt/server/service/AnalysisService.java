@@ -393,6 +393,7 @@ public class AnalysisService {
 		for(String date : dateRange){
 			NewsMorpVO morpVO = new NewsMorpVO("D:\\PPT\\mining\\"+newsCode+date+".json");
 			String predict = analysis.trainAnalyze(morpVO);
+			System.out.println(predict);
 		}
 		
 		return String.valueOf(analysis.getSuccess()*100 / analysis.getPredictCnt());
