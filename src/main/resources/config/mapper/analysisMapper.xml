@@ -47,7 +47,7 @@
 	</update>
 	
 	<insert id="insertMyAnalysis" parameterType="java.util.Map">
-		insert into MY_ANALISYS(no, user_no, dic_name, com_name, ana_code, news_code, yesterday_fluc today_fluc, today_inc, today_dec, today_equ, tomorrow_fluc, tomorrow_inc, tomorrow_dec, tomorrow_equ, reg_date) 
+		insert into MY_ANALISYS(no, user_no, dic_name, com_name, ana_code, news_code, yesterday_fluc, today_fluc, today_inc, today_dec, today_equ, tomorrow_fluc, tomorrow_inc, tomorrow_dec, tomorrow_equ, reg_date) 
 		values(MY_ANALISYS_SEQ.nextVal, #{userNo}, #{dicName}, #{comName}, #{anaCode}, #{newsCode}, #{yesterdayFluc}, #{todayFluc}, #{todayInc}, #{todayDec}, #{todayEqu}, #{tomorrowFluc}, #{tomorrowInc}, #{tomorrowDec}, #{tomorrowEqu}, sysdate)
 	</insert>
 	
