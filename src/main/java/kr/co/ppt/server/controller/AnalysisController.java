@@ -72,6 +72,8 @@ public class AnalysisController {
 			JSONObject yesterdayObj = aService.myAnalyzeWithFile(yesterday, comName, newsCode, anaCode, userDicArr);
 			JSONObject todayObj = aService.myAnalyzeWithFile(today, comName, newsCode, anaCode, userDicArr);
 			todayObj.put("yesterdayFluc", yesterdayObj.get("todayFluc"));
+			todayObj.put("userNo", userNo);
+			todayObj.put("dicName", dicName);
 			aService.insertMyAnalysis(todayObj);
 			
 		} catch (ParseException e) {
