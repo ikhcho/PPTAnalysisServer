@@ -97,9 +97,10 @@ public class CrawlerSerivce {
 					JSONObject myObj = aService.myAnalyzeWithFile(today, comName, newsCode, anaCode, userDic);
 					myObj.put("userNo", userNo);
 					myObj.put("dicName", dicName);
-					if(aService.selectOneMyAnalysis(userNo,dicName) == null)
+					if(aService.selectOneMyAnalysis(userNo,dicName) == null){
+						myObj.put("yesterdayFluc", aService.myAnalyzeWithFile(Tool.getDate(today, -1), comName, newsCode, anaCode, userDic).get("todayFluc"));
 						aService.insertMyAnalysis(myObj);
-					else
+					}else
 						aService.updateMyAnalysis(myObj);
 				}
 				//newsCode로 
